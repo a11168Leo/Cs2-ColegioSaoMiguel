@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Painel CS2 Server</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <aside class="sidebar">
+        <div class="brand">
+          <span class="brand-name">CS2 Competition</span>
+          <p>Painel de torneio</p>
+        </div>
+
+        <nav class="sidebar-menu">
+          <button class="sidebar-item active" type="button">Dashboard</button>
+          <button class="sidebar-item" type="button">Servidor</button>
+          <button class="sidebar-item" type="button">Mapas</button>
+          <button class="sidebar-item" type="button">Equipes</button>
+          <button class="sidebar-item" type="button">Regras</button>
+          <button class="sidebar-item" type="button">Placar</button>
+        </nav>
+      </aside>
+
+      <div class="main-content">
+        <header class="page-header">
+          <div>
+            <h1>Painel de Competição CS2</h1>
+            <p>Gerencie servidor, mapa, equipes e torneios em um único painel.</p>
+          </div>
+        </header>
+
+        <section class="overview-grid">
+          <article class="small-card">
+            <h3>Resumo rápido</h3>
+            <p><strong>Mapa selecionado:</strong> <span id="summary-map">de_dust2</span></p>
+            <p><strong>Jogadores:</strong> <span id="summary-players">10</span></p>
+            <p><strong>Servidor:</strong> <span id="summary-ip">não configurado</span></p>
+          </article>
+
+          <article class="small-card">
+            <h3>Competição</h3>
+            <p>Próxima partida: não definida</p>
+            <p>Equipes ativas: 0</p>
+            <p>Regras de torneio: padrão</p>
+          </article>
+        </section>
+
+        <section class="card">
+          <h2>Configurar servidor</h2>
+          <form id="server-form">
+            <div class="map-grid" id="map-grid">
+              <button type="button" class="map-card active" data-map="de_dust2" style="background-image: url('https://images.unsplash.com/photo-1541781774459-bb30e1d3c5b2?auto=format&fit=crop&w=900&q=80');">
+                <span>de_dust2</span>
+              </button>
+              <button type="button" class="map-card" data-map="de_inferno" style="background-image: url('https://images.unsplash.com/photo-1526676031603-f8b8bba23f37?auto=format&fit=crop&w=900&q=80');">
+                <span>de_inferno</span>
+              </button>
+              <button type="button" class="map-card" data-map="de_mirage" style="background-image: url('https://images.unsplash.com/photo-1549888834-4a3d15529946?auto=format&fit=crop&w=900&q=80');">
+                <span>de_mirage</span>
+              </button>
+            </div>
+
+            <input type="hidden" id="map" value="de_dust2" />
+
+            <label>
+              Total de jogadores
+              <input type="number" id="players" min="1" max="64" value="10" required />
+            </label>
+
+            <label>
+              Endereço de IP
+              <input type="text" id="ip" placeholder="ex: 127.0.0.1:27015" required />
+            </label>
+
+            <button type="submit">Salvar configuração</button>
+          </form>
+          <div id="status" class="status"></div>
+        </section>
+
+        <section class="card">
+          <h2>Enviar comando</h2>
+          <div class="button-grid">
+            <button data-action="restart">Reiniciar servidor</button>
+            <button data-action="change-map">Mudar mapa</button>
+            <button data-action="set-maxplayers">Definir máximo jogadores</button>
+          </div>
+          <div id="command-status" class="status"></div>
+        </section>
+      </div>
+    </main>
+
+    <script src="app.js"></script>
+  </body>
+</html>
