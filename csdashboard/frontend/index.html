@@ -1,0 +1,1020 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CS2-CSM · Painel de Competição</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
+    rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+
+<body>
+
+  <!-- APP SHELL (visível após sessão válida) -->
+  <div class="app-shell" id="app-shell" style="display:none;">
+
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <div class="brand-icon">
+          <img src="./frontend/src/logo/logo_site.png" alt="Logo"
+            onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" />
+          <span class="brand-icon-fallback">CS</span>
+        </div>
+        <div class="brand-text">
+          <span class="brand-name">CS2-CSM</span>
+          <span class="brand-sub">Server Manager</span>
+        </div>
+      </div>
+
+      <nav class="sidebar-menu">
+        <button class="sidebar-item active" data-section="dashboard">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="currentColor">
+            <rect x="3" y="3" width="8" height="8" rx="2" />
+            <rect x="13" y="3" width="8" height="8" rx="2" />
+            <rect x="3" y="13" width="8" height="8" rx="2" />
+            <rect x="13" y="13" width="8" height="8" rx="2" />
+          </svg>
+          Dashboard
+        </button>
+        <button class="sidebar-item" data-section="servidor">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="2" y="3" width="20" height="5" rx="2" />
+            <rect x="2" y="11" width="20" height="5" rx="2" />
+            <circle cx="18" cy="5.5" r="1" fill="currentColor" />
+            <circle cx="18" cy="13.5" r="1" fill="currentColor" />
+          </svg>
+          Servidor
+        </button>
+        <button class="sidebar-item" data-section="mapas">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6" />
+            <line x1="8" y1="2" x2="8" y2="18" />
+            <line x1="16" y1="6" x2="16" y2="22" />
+          </svg>
+          Mapas
+        </button>
+        <button class="sidebar-item" data-section="equipes">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="9" cy="7" r="4" />
+            <path d="M3 21v-2a4 4 0 014-4h4a4 4 0 014 4v2" />
+            <circle cx="19" cy="8" r="3" />
+            <path d="M21 21v-1.5a3 3 0 00-2-2.83" />
+          </svg>
+          Equipes
+        </button>
+        <button class="sidebar-item" data-section="regras">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
+            <polyline points="14 2 14 8 20 8" />
+            <line x1="16" y1="13" x2="8" y2="13" />
+            <line x1="16" y1="17" x2="8" y2="17" />
+          </svg>
+          Regras
+        </button>
+        <button class="sidebar-item" data-section="placar">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+          </svg>
+          Placar
+        </button>
+      </nav>
+
+      <div class="user-profile">
+        <div class="user-greeting">
+          <div class="user-avatar-wrap">
+            <img src="https://placehold.co/32x32/1e3a5f/60a5fa?text=U" alt="Avatar" class="user-avatar"
+              id="sidebar-avatar" />
+          </div>
+          <div class="user-info-text">
+            <span class="user-name" id="sidebar-username">Utilizador</span>
+            <span class="user-role" id="sidebar-role">—</span>
+          </div>
+        </div>
+        <button class="login-btn" onclick="doLogout()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" />
+            <polyline points="16 17 21 12 16 7" />
+            <line x1="21" y1="12" x2="9" y2="12" />
+          </svg>
+          Terminar Sessão
+        </button>
+      </div>
+    </aside>
+
+    <div class="main-wrap">
+      <header class="topbar">
+        <div class="topbar-left">
+          <span class="page-breadcrumb">Dashboard</span>
+          <span class="page-title-small">Painel de Competição CS2</span>
+        </div>
+        <div class="topbar-right">
+          <!-- Server Switcher Dropdown -->
+          <div class="server-switcher" id="server-switcher">
+            <button class="server-switcher-btn" id="server-switcher-btn" onclick="toggleServerDropdown()">
+              <span class="status-dot" id="switcher-dot"></span>
+              <span class="switcher-ip" id="topbar-ip">127.0.0.1:27015</span>
+              <svg class="switcher-chevron" id="switcher-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2.5">
+                <polyline points="6 9 12 15 18 9" />
+              </svg>
+            </button>
+            <div class="server-dropdown" id="server-dropdown">
+              <div class="server-dropdown-header">Servidores Ativos</div>
+              <div class="server-dropdown-list" id="server-dropdown-list">
+                <!-- populated by JS -->
+              </div>
+              <div class="server-dropdown-footer">
+                <button class="server-add-btn" onclick="openAddServerModal()">
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <line x1="12" y1="5" x2="12" y2="19" />
+                    <line x1="5" y1="12" x2="19" y2="12" />
+                  </svg>
+                  Adicionar Servidor
+                </button>
+              </div>
+            </div>
+          </div>
+          <div class="topbar-avatar" id="topbar-avatar">VS</div>
+        </div>
+      </header>
+
+      <main class="main-content">
+
+        <section class="hero-banner">
+          <div class="hero-text">
+            <h1 class="hero-title">Bem-vindo, <span class="hero-accent" id="hero-username">Utilizador</span></h1>
+            <p class="hero-sub">Gerencie servidor, mapa, equipes e torneios num único lugar.</p>
+            <div class="hero-stats-row">
+              <div class="hero-stat-chip">
+                <span class="chip-label">Mapa</span>
+                <span class="chip-value" id="summary-map">de_dust2</span>
+              </div>
+              <div class="hero-stat-chip">
+                <span class="chip-label">Jogadores</span>
+                <span class="chip-value" id="summary-players">10</span>
+              </div>
+              <div class="hero-stat-chip">
+                <span class="chip-label">Servidor</span>
+                <span class="chip-value" id="summary-ip">não configurado</span>
+              </div>
+            </div>
+          </div>
+          <div class="hero-visual">
+            <div class="hero-ring">
+              <div class="hero-ring-inner">
+                <span class="hero-ring-label">Round</span>
+                <span class="hero-ring-num">07</span>
+                <span class="hero-ring-sub">de 30</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="overview-grid">
+
+          <article class="small-card card-hoverable">
+            <div class="card-icon-wrap blue">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6" />
+              </svg>
+            </div>
+            <div class="card-stat-info">
+              <span class="card-stat-label">Mapa Ativo</span>
+              <span class="card-stat-value" id="card-map">de_dust2</span>
+            </div>
+            <div class="card-specs-tooltip">
+              <div class="cst-title">Especificações do Mapa</div>
+              <div class="cst-row"><span class="cst-key">Nome completo</span><span class="cst-val">Dust II</span></div>
+              <div class="cst-row"><span class="cst-key">Tipo</span><span class="cst-val">Demolição</span></div>
+              <div class="cst-row"><span class="cst-key">Bombsites</span><span class="cst-val">A · B</span></div>
+              <div class="cst-row"><span class="cst-key">Última rotação</span><span class="cst-val">Há 2 horas</span>
+              </div>
+            </div>
+          </article>
+
+          <article class="small-card card-hoverable">
+            <div class="card-icon-wrap cyan">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="9" cy="7" r="4" />
+                <path d="M3 21v-2a4 4 0 014-4h4a4 4 0 014 4v2" />
+                <circle cx="19" cy="8" r="3" />
+                <path d="M21 21v-1.5a3 3 0 00-2-2.83" />
+              </svg>
+            </div>
+            <div class="card-stat-info">
+              <span class="card-stat-label">Jogadores Online</span>
+              <span class="card-stat-value" id="card-players">10 / 10</span>
+            </div>
+            <div class="card-specs-tooltip">
+              <div class="cst-title">Detalhes dos Jogadores</div>
+              <div class="cst-row"><span class="cst-key">Capacidade máx.</span><span class="cst-val">10 slots</span>
+              </div>
+              <div class="cst-row"><span class="cst-key">Time CT</span><span class="cst-val">5 jogadores</span></div>
+              <div class="cst-row"><span class="cst-key">Time T</span><span class="cst-val">5 jogadores</span></div>
+              <div class="cst-row"><span class="cst-key">Espectadores</span><span class="cst-val">0</span></div>
+            </div>
+          </article>
+
+          <article class="small-card card-hoverable">
+            <div class="card-icon-wrap green">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="2" y="3" width="20" height="5" rx="2" />
+                <rect x="2" y="11" width="20" height="5" rx="2" />
+                <circle cx="18" cy="5.5" r="1" fill="currentColor" />
+                <circle cx="18" cy="13.5" r="1" fill="currentColor" />
+              </svg>
+            </div>
+            <div class="card-stat-info">
+              <span class="card-stat-label">Status Servidor</span>
+              <span class="card-stat-value green-text">Online</span>
+            </div>
+            <div class="card-specs-tooltip">
+              <div class="cst-title">Informações do Servidor</div>
+              <div class="cst-row"><span class="cst-key">Uptime</span><span class="cst-val">12h 34min</span></div>
+              <div class="cst-row"><span class="cst-key">Tickrate</span><span class="cst-val">128 tick</span></div>
+              <div class="cst-row"><span class="cst-key">Latência média</span><span class="cst-val">15ms</span></div>
+              <div class="cst-row"><span class="cst-key">Versão</span><span class="cst-val">CS2 v1.0</span></div>
+            </div>
+          </article>
+
+          <article class="small-card card-hoverable">
+            <div class="card-icon-wrap amber">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+              </svg>
+            </div>
+            <div class="card-stat-info">
+              <span class="card-stat-label">Competição</span>
+              <span class="card-stat-value">Próxima: —</span>
+            </div>
+            <div class="card-specs-tooltip">
+              <div class="cst-title">Detalhes da Competição</div>
+              <div class="cst-row"><span class="cst-key">Formato</span><span class="cst-val">MR12 (BO3)</span></div>
+              <div class="cst-row"><span class="cst-key">Equipas</span><span class="cst-val">2 registadas</span></div>
+              <div class="cst-row"><span class="cst-key">Agendamento</span><span class="cst-val">Não definido</span>
+              </div>
+              <div class="cst-row"><span class="cst-key">Overtime</span><span class="cst-val">MR3</span></div>
+            </div>
+          </article>
+
+        </section>
+
+        <section class="card">
+          <div class="card-header">
+            <h2 class="card-title">Configurar Servidor</h2>
+            <span class="card-badge">Form</span>
+          </div>
+          <form id="server-form">
+            <p class="field-label">Selecionar mapa</p>
+            <div class="map-grid" id="map-grid">
+
+              <div class="map-card-wrap">
+                <button type="button" class="map-card active" data-map="de_dust2"
+                  style="background-image:url('./Dust2.jpg')"><span>de_dust2</span></button>
+                <div class="map-tooltip">
+                  <div class="mtt-name">Dust II</div>
+                  <div class="mtt-row"><span class="mtt-key">Estilo</span><span class="mtt-val">Exterior / Árido</span>
+                  </div>
+                  <div class="mtt-row"><span class="mtt-key">Bombsites</span><span class="mtt-val">A · B</span></div>
+                  <div class="mtt-row"><span class="mtt-key">Origem</span><span class="mtt-val">1999 · CS 1.0</span>
+                  </div>
+                  <div class="mtt-row"><span class="mtt-key">Dificuldade</span><span
+                      class="mtt-val mtt-badge mtt-easy">Iniciante</span></div>
+                  <div class="mtt-row"><span class="mtt-key">Duração média</span><span class="mtt-val">~20 min</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="map-card-wrap">
+                <button type="button" class="map-card" data-map="de_inferno"
+                  style="background-image:url('./Inferno.jpg')"><span>de_inferno</span></button>
+                <div class="map-tooltip">
+                  <div class="mtt-name">Inferno</div>
+                  <div class="mtt-row"><span class="mtt-key">Estilo</span><span class="mtt-val">Urbano /
+                      Mediterrâneo</span></div>
+                  <div class="mtt-row"><span class="mtt-key">Bombsites</span><span class="mtt-val">A · B</span></div>
+                  <div class="mtt-row"><span class="mtt-key">Origem</span><span class="mtt-val">2001 · CS 1.1</span>
+                  </div>
+                  <div class="mtt-row"><span class="mtt-key">Dificuldade</span><span
+                      class="mtt-val mtt-badge mtt-medium">Médio</span></div>
+                  <div class="mtt-row"><span class="mtt-key">Duração média</span><span class="mtt-val">~25 min</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="map-card-wrap">
+                <button type="button" class="map-card" data-map="de_mirage"
+                  style="background-image:url('./Mirage.jpg')"><span>de_mirage</span></button>
+                <div class="map-tooltip">
+                  <div class="mtt-name">Mirage</div>
+                  <div class="mtt-row"><span class="mtt-key">Estilo</span><span class="mtt-val">Médio Oriente</span>
+                  </div>
+                  <div class="mtt-row"><span class="mtt-key">Bombsites</span><span class="mtt-val">A · B</span></div>
+                  <div class="mtt-row"><span class="mtt-key">Origem</span><span class="mtt-val">2013 · CS:GO</span>
+                  </div>
+                  <div class="mtt-row"><span class="mtt-key">Dificuldade</span><span
+                      class="mtt-val mtt-badge mtt-medium">Médio</span></div>
+                  <div class="mtt-row"><span class="mtt-key">Duração média</span><span class="mtt-val">~22 min</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="map-card-wrap">
+                <button type="button" class="map-card" data-map="de_nuke"
+                  style="background-image:url('./Nuke.png')"><span>de_nuke</span></button>
+                <div class="map-tooltip">
+                  <div class="mtt-name">Nuke</div>
+                  <div class="mtt-row"><span class="mtt-key">Estilo</span><span class="mtt-val">Industrial /
+                      Nuclear</span></div>
+                  <div class="mtt-row"><span class="mtt-key">Bombsites</span><span class="mtt-val">A · B (2
+                      pisos)</span></div>
+                  <div class="mtt-row"><span class="mtt-key">Origem</span><span class="mtt-val">2000 · CS 1.0</span>
+                  </div>
+                  <div class="mtt-row"><span class="mtt-key">Dificuldade</span><span
+                      class="mtt-val mtt-badge mtt-hard">Avançado</span></div>
+                  <div class="mtt-row"><span class="mtt-key">Pisos</span><span class="mtt-val">Superior ·
+                      Inferior</span></div>
+                </div>
+              </div>
+
+              <div class="map-card-wrap">
+                <button type="button" class="map-card" data-map="de_ancient"
+                  style="background-image:url('./Ancient.jpg')"><span>de_ancient</span></button>
+                <div class="map-tooltip">
+                  <div class="mtt-name">Ancient</div>
+                  <div class="mtt-row"><span class="mtt-key">Estilo</span><span class="mtt-val">Selva / Ruínas</span>
+                  </div>
+                  <div class="mtt-row"><span class="mtt-key">Bombsites</span><span class="mtt-val">A · B</span></div>
+                  <div class="mtt-row"><span class="mtt-key">Origem</span><span class="mtt-val">2020 · CS:GO</span>
+                  </div>
+                  <div class="mtt-row"><span class="mtt-key">Dificuldade</span><span
+                      class="mtt-val mtt-badge mtt-medium">Médio</span></div>
+                  <div class="mtt-row"><span class="mtt-key">Duração média</span><span class="mtt-val">~23 min</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="map-card-wrap">
+                <button type="button" class="map-card" data-map="de_anubis"
+                  style="background-image:url('./Anubis.jpg')"><span>de_anubis</span></button>
+                <div class="map-tooltip">
+                  <div class="mtt-name">Anubis</div>
+                  <div class="mtt-row"><span class="mtt-key">Estilo</span><span class="mtt-val">Egípcio / Deserto</span>
+                  </div>
+                  <div class="mtt-row"><span class="mtt-key">Bombsites</span><span class="mtt-val">A · B</span></div>
+                  <div class="mtt-row"><span class="mtt-key">Origem</span><span class="mtt-val">2023 · CS2</span></div>
+                  <div class="mtt-row"><span class="mtt-key">Dificuldade</span><span
+                      class="mtt-val mtt-badge mtt-medium">Médio</span></div>
+                  <div class="mtt-row"><span class="mtt-key">Duração média</span><span class="mtt-val">~22 min</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="map-card-wrap">
+                <button type="button" class="map-card" data-map="de_vertigo"
+                  style="background-image:url('./De_vertigo_cs2.webp')"><span>de_vertigo</span></button>
+                <div class="map-tooltip">
+                  <div class="mtt-name">Vertigo</div>
+                  <div class="mtt-row"><span class="mtt-key">Estilo</span><span class="mtt-val">Arranha-céus</span>
+                  </div>
+                  <div class="mtt-row"><span class="mtt-key">Bombsites</span><span class="mtt-val">A · B
+                      (cobertura)</span></div>
+                  <div class="mtt-row"><span class="mtt-key">Origem</span><span class="mtt-val">2019 · CS:GO</span>
+                  </div>
+                  <div class="mtt-row"><span class="mtt-key">Dificuldade</span><span
+                      class="mtt-val mtt-badge mtt-hard">Avançado</span></div>
+                  <div class="mtt-row"><span class="mtt-key">Pisos</span><span class="mtt-val">Cobertura ·
+                      Interior</span></div>
+                </div>
+              </div>
+
+              <div class="map-card-wrap">
+                <button type="button" class="map-card" data-map="de_overpass"
+                  style="background-image:url('./Overpass.webp')"><span>de_overpass</span></button>
+                <div class="map-tooltip">
+                  <div class="mtt-name">Overpass</div>
+                  <div class="mtt-row"><span class="mtt-key">Estilo</span><span class="mtt-val">Urbano / Parque</span>
+                  </div>
+                  <div class="mtt-row"><span class="mtt-key">Bombsites</span><span class="mtt-val">A · B</span></div>
+                  <div class="mtt-row"><span class="mtt-key">Origem</span><span class="mtt-val">2013 · CS:GO</span>
+                  </div>
+                  <div class="mtt-row"><span class="mtt-key">Dificuldade</span><span
+                      class="mtt-val mtt-badge mtt-hard">Avançado</span></div>
+                  <div class="mtt-row"><span class="mtt-key">Duração média</span><span class="mtt-val">~26 min</span>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+            <input type="hidden" id="map" value="de_dust2" />
+
+            <div class="form-row">
+              <label class="form-field">
+                <span class="field-label">Total de jogadores</span>
+                <input type="number" id="players" min="1" max="64" value="10" required />
+              </label>
+              <label class="form-field">
+                <span class="field-label">Endereço IP</span>
+                <input type="text" id="ip" placeholder="127.0.0.1:27015" required />
+              </label>
+            </div>
+
+            <div class="form-actions">
+              <button type="submit" class="btn btn-primary">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z" />
+                  <polyline points="17 21 17 13 7 13 7 21" />
+                </svg>
+                Salvar Configuração
+              </button>
+            </div>
+            <div id="status" class="status" style="display:none"></div>
+          </form>
+        </section>
+
+        <section class="card">
+          <div class="card-header">
+            <h2 class="card-title">Comandos Rápidos</h2>
+            <span class="card-badge">Controle</span>
+          </div>
+          <div class="button-grid">
+            <button class="btn btn-cmd" data-action="restart">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="23 4 23 10 17 10" />
+                <path d="M20.49 15a9 9 0 11-2.12-9.36L23 10" />
+              </svg>
+              Reiniciar
+            </button>
+            <button class="btn btn-cmd" data-action="change-map">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6" />
+              </svg>
+              Mudar Mapa
+            </button>
+            <button class="btn btn-cmd" data-action="set-maxplayers">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="9" cy="7" r="4" />
+                <path d="M3 21v-2a4 4 0 014-4h4a4 4 0 014 4v2" />
+                <circle cx="19" cy="8" r="3" />
+              </svg>
+              Max Jogadores
+            </button>
+          </div>
+          <div id="command-status" class="status" style="display:none"></div>
+        </section>
+
+
+        <!-- ===== SECÇÃO: SERVIDORES ===== -->
+        <section class="page-section hidden" id="section-servidor">
+          <div class="section-hero">
+            <h2 class="section-hero-title">Gestão de Servidores</h2>
+            <p class="section-hero-sub">Monitoriza e gere todos os servidores de competição.</p>
+          </div>
+          <div class="servers-grid" id="servers-grid">
+            <!-- populated by JS -->
+          </div>
+        </section>
+
+        <!-- ===== SECÇÃO: MAPAS ===== -->
+        <section class="page-section hidden" id="section-mapas">
+          <div class="section-hero">
+            <h2 class="section-hero-title">Pool de Mapas</h2>
+            <p class="section-hero-sub">Escolhe o mapa para a próxima partida ou gere a rotação.</p>
+          </div>
+          <div class="maps-full-grid">
+            <div class="map-full-card" data-map="de_dust2" style="background-image:url('/Dust2.jpg')">
+              <div class="mfc-overlay"></div>
+              <div class="mfc-info">
+                <span class="mfc-name">de_dust2</span>
+                <span class="mfc-tag mfc-easy">Iniciante</span>
+              </div>
+              <button class="mfc-select-btn" onclick="selectMapFromGrid('de_dust2')">Selecionar</button>
+            </div>
+            <div class="map-full-card" data-map="de_inferno" style="background-image:url('./Inferno.jpg')">
+              <div class="mfc-overlay"></div>
+              <div class="mfc-info">
+                <span class="mfc-name">de_inferno</span>
+                <span class="mfc-tag mfc-medium">Médio</span>
+              </div>
+              <button class="mfc-select-btn" onclick="selectMapFromGrid('de_inferno')">Selecionar</button>
+            </div>
+            <div class="map-full-card" data-map="de_mirage" style="background-image:url('./Mirage.jpg')">
+              <div class="mfc-overlay"></div>
+              <div class="mfc-info">
+                <span class="mfc-name">de_mirage</span>
+                <span class="mfc-tag mfc-medium">Médio</span>
+              </div>
+              <button class="mfc-select-btn" onclick="selectMapFromGrid('de_mirage')">Selecionar</button>
+            </div>
+            <div class="map-full-card" data-map="de_nuke" style="background-image:url('./Nuke.png')">
+              <div class="mfc-overlay"></div>
+              <div class="mfc-info">
+                <span class="mfc-name">de_nuke</span>
+                <span class="mfc-tag mfc-hard">Avançado</span>
+              </div>
+              <button class="mfc-select-btn" onclick="selectMapFromGrid('de_nuke')">Selecionar</button>
+            </div>
+            <div class="map-full-card" data-map="de_ancient" style="background-image:url('./Ancient.jpg')">
+              <div class="mfc-overlay"></div>
+              <div class="mfc-info">
+                <span class="mfc-name">de_ancient</span>
+                <span class="mfc-tag mfc-medium">Médio</span>
+              </div>
+              <button class="mfc-select-btn" onclick="selectMapFromGrid('de_ancient')">Selecionar</button>
+            </div>
+            <div class="map-full-card" data-map="de_anubis" style="background-image:url('./Anubis.jpg')">
+              <div class="mfc-overlay"></div>
+              <div class="mfc-info">
+                <span class="mfc-name">de_anubis</span>
+                <span class="mfc-tag mfc-medium">Médio</span>
+              </div>
+              <button class="mfc-select-btn" onclick="selectMapFromGrid('de_anubis')">Selecionar</button>
+            </div>
+            <div class="map-full-card" data-map="de_vertigo" style="background-image:url('./De_vertigo_cs2.webp')">
+              <div class="mfc-overlay"></div>
+              <div class="mfc-info">
+                <span class="mfc-name">de_vertigo</span>
+                <span class="mfc-tag mfc-hard">Avançado</span>
+              </div>
+              <button class="mfc-select-btn" onclick="selectMapFromGrid('de_vertigo')">Selecionar</button>
+            </div>
+            <div class="map-full-card" data-map="de_overpass" style="background-image:url('./Overpass.webp')">
+              <div class="mfc-overlay"></div>
+              <div class="mfc-info">
+                <span class="mfc-name">de_overpass</span>
+                <span class="mfc-tag mfc-hard">Avançado</span>
+              </div>
+              <button class="mfc-select-btn" onclick="selectMapFromGrid('de_overpass')">Selecionar</button>
+            </div>
+          </div>
+          <div class="map-selected-notice" id="map-selected-notice" style="display:none">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="20 6 9 17 4 12" />
+            </svg>
+            Mapa <strong id="map-selected-name"></strong> selecionado para a próxima partida.
+          </div>
+        </section>
+
+        <!-- ===== SECÇÃO: EQUIPES ===== -->
+        <section class="page-section hidden" id="section-equipes">
+          <div class="section-hero">
+            <h2 class="section-hero-title">Equipes</h2>
+            <p class="section-hero-sub">Regista e gere as equipas participantes.</p>
+          </div>
+          <div class="teams-toolbar">
+            <button class="btn btn-primary" onclick="openTeamModal()">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <line x1="12" y1="5" x2="12" y2="19" />
+                <line x1="5" y1="12" x2="19" y2="12" />
+              </svg>
+              Nova Equipe
+            </button>
+          </div>
+          <div class="teams-grid" id="teams-grid">
+            <!-- populated by JS -->
+          </div>
+        </section>
+
+        <!-- ===== SECÇÃO: REGRAS ===== -->
+        <section class="page-section hidden" id="section-regras">
+          <div class="section-hero">
+            <h2 class="section-hero-title">Regras da Competição</h2>
+            <p class="section-hero-sub">Regras oficiais aplicadas às partidas geridas por este painel.</p>
+          </div>
+          <div class="rules-grid">
+            <div class="rules-card">
+              <div class="rules-card-header">
+                <div class="rules-icon blue"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10" />
+                    <line x1="12" y1="8" x2="12" y2="12" />
+                    <line x1="12" y1="16" x2="12.01" y2="16" />
+                  </svg></div>
+                <span class="rules-card-title">Formato de Jogo</span>
+              </div>
+              <ul class="rules-list">
+                <li>MR12 — 12 rounds por half (24 rounds normais)</li>
+                <li>Overtime: MR3 com reset de dinheiro a $10 000</li>
+                <li>Knife round determina escolha de lado</li>
+                <li>Pausa técnica: 2 por equipa (60 seg cada)</li>
+              </ul>
+            </div>
+            <div class="rules-card">
+              <div class="rules-card-header">
+                <div class="rules-icon cyan"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                  </svg></div>
+                <span class="rules-card-title">Conduta dos Jogadores</span>
+              </div>
+              <ul class="rules-list">
+                <li>Proibido uso de qualquer tipo de cheats ou exploits</li>
+                <li>Comunicação respeitosa obrigatória</li>
+                <li>Presença obrigatória 10 min antes do início</li>
+                <li>Substituições: máx. 1 por mapa em situação de emergência</li>
+              </ul>
+            </div>
+            <div class="rules-card">
+              <div class="rules-card-header">
+                <div class="rules-icon amber"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2">
+                    <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6" />
+                  </svg></div>
+                <span class="rules-card-title">Mapa & Veto</span>
+              </div>
+              <ul class="rules-list">
+                <li>BO1: cada equipa bane 3 mapas; 1 restante é jogado</li>
+                <li>BO3: alternância ban/pick; último mapa é o decider</li>
+                <li>BO5: alternância ban/pick até 5 mapas definidos</li>
+                <li>Tempo de veto: 30 segundos por decisão</li>
+              </ul>
+            </div>
+            <div class="rules-card">
+              <div class="rules-card-header">
+                <div class="rules-icon green"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2">
+                    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+                  </svg></div>
+                <span class="rules-card-title">Servidor & Técnico</span>
+              </div>
+              <ul class="rules-list">
+                <li>Tickrate: 128 tick obrigatório</li>
+                <li>Configs competitivas padrão da Valve aplicadas</li>
+                <li>Em caso de crash: round atual é repetido</li>
+                <li>GOTV obrigatório com delay de 90 segundos</li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===== SECÇÃO: PLACAR ===== -->
+        <section class="page-section hidden" id="section-placar">
+          <div class="section-hero">
+            <h2 class="section-hero-title">Placar da Competição</h2>
+            <p class="section-hero-sub">Resultados e classificações atualizados em tempo real.</p>
+          </div>
+          <div class="scoreboard-wrap">
+            <div class="scoreboard-match" id="scoreboard-live">
+              <div class="sb-live-badge">AO VIVO</div>
+              <div class="sb-match-row">
+                <div class="sb-team sb-team-left">
+                  <div class="sb-team-avatar" style="background:var(--blue)">CT</div>
+                  <span class="sb-team-name" id="sb-team-ct">Counter-Terrorists</span>
+                </div>
+                <div class="sb-score-center">
+                  <span class="sb-score" id="sb-score-ct">0</span>
+                  <span class="sb-score-sep">:</span>
+                  <span class="sb-score" id="sb-score-t">0</span>
+                  <div class="sb-round-info">Round <span id="sb-round">1</span> / 24</div>
+                </div>
+                <div class="sb-team sb-team-right">
+                  <span class="sb-team-name" id="sb-team-t">Terrorists</span>
+                  <div class="sb-team-avatar" style="background:#c2410c">T</div>
+                </div>
+              </div>
+              <div class="sb-map-row">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6" />
+                </svg>
+                <span id="sb-current-map">de_dust2</span>
+              </div>
+              <div class="sb-controls">
+                <button class="btn btn-cmd" onclick="sbScore('ct', -1)">CT −</button>
+                <button class="btn btn-primary" onclick="sbScore('ct', 1)">CT +</button>
+                <button class="btn btn-primary" onclick="sbScore('t', 1)">T +</button>
+                <button class="btn btn-cmd" onclick="sbScore('t', -1)">T −</button>
+              </div>
+            </div>
+
+            <div class="scoreboard-history-card">
+              <div class="card-header">
+                <h3 class="card-title">Histórico de Partidas</h3>
+                <span class="card-badge">Resultados</span>
+              </div>
+              <div class="sb-history-list" id="sb-history-list">
+                <div class="sb-history-item">
+                  <span class="sb-hist-teams">NaVi <strong>13</strong> · <strong>11</strong> Astralis</span>
+                  <span class="sb-hist-map">de_mirage</span>
+                  <span class="sb-hist-result win">V</span>
+                </div>
+                <div class="sb-history-item">
+                  <span class="sb-hist-teams">NaVi <strong>16</strong> · <strong>8</strong> FAZE</span>
+                  <span class="sb-hist-map">de_inferno</span>
+                  <span class="sb-hist-result win">V</span>
+                </div>
+                <div class="sb-history-item">
+                  <span class="sb-hist-teams">NaVi <strong>9</strong> · <strong>16</strong> Vitality</span>
+                  <span class="sb-hist-map">de_nuke</span>
+                  <span class="sb-hist-result loss">D</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+      </main>
+    </div>
+  </div>
+
+  <!-- Overlay de transição (logout / loading) -->
+  <div class="page-transition" id="page-transition">
+    <div class="transition-logo">CS</div>
+    <div class="transition-text" id="transition-text">A carregar...</div>
+  </div>
+
+
+  <!-- ===== ADD SERVER MODAL ===== -->
+  <div class="modal-overlay hidden" id="add-server-modal" onclick="closeModalOnOverlay(event, 'add-server-modal')">
+    <div class="modal-box">
+      <div class="modal-header">
+        <span class="modal-title">Adicionar Servidor</span>
+        <button class="modal-close" onclick="closeModal('add-server-modal')">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="modal-field">
+          <label class="modal-label">Nome do Servidor</label>
+          <input type="text" id="modal-server-name" placeholder="ex: Servidor Principal" />
+        </div>
+        <div class="modal-field">
+          <label class="modal-label">Endereço IP</label>
+          <input type="text" id="modal-server-ip" placeholder="ex: 192.168.1.10:27015" />
+        </div>
+        <div class="modal-field">
+          <label class="modal-label">Mapa Inicial</label>
+          <input type="text" id="modal-server-map" placeholder="ex: de_dust2" />
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-cmd" onclick="closeModal('add-server-modal')">Cancelar</button>
+        <button class="btn btn-primary" onclick="saveNewServer()">Adicionar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== ADD TEAM MODAL ===== -->
+  <div class="modal-overlay hidden" id="add-team-modal" onclick="closeModalOnOverlay(event, 'add-team-modal')">
+    <div class="modal-box">
+      <div class="modal-header">
+        <span class="modal-title">Nova Equipe</span>
+        <button class="modal-close" onclick="closeModal('add-team-modal')">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="modal-field">
+          <label class="modal-label">Nome da Equipe</label>
+          <input type="text" id="modal-team-name" placeholder="ex: Team NaVi" />
+        </div>
+        <div class="modal-field">
+          <label class="modal-label">Tag (máx. 4 letras)</label>
+          <input type="text" id="modal-team-tag" placeholder="ex: NaVi" maxlength="4" />
+        </div>
+        <div class="modal-field">
+          <label class="modal-label">Número de Jogadores</label>
+          <input type="number" id="modal-team-players" placeholder="5" min="1" max="10" value="5" />
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-cmd" onclick="closeModal('add-team-modal')">Cancelar</button>
+        <button class="btn btn-primary" onclick="saveNewTeam()">Criar Equipe</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="auth.js"></script>
+  <script src="app.js"></script>
+
+  <script>
+    /* ===== SERVER SWITCHER ===== */
+    var servers = JSON.parse(localStorage.getItem('cs2csm_servers') || 'null') || [
+      { id: 1, name: 'Servidor Principal', ip: '127.0.0.1:27015', map: 'de_dust2', status: 'online' },
+      { id: 2, name: 'Servidor Backup', ip: '192.168.1.5:27015', map: 'de_mirage', status: 'online' },
+      { id: 3, name: 'Servidor Treino', ip: '10.0.0.2:27016', map: 'de_inferno', status: 'offline' }
+    ];
+    var activeServerId = servers.find(function (s) { return s.status === 'online'; }) ? servers.find(function (s) { return s.status === 'online'; }).id : null;
+
+    function saveServers() { localStorage.setItem('cs2csm_servers', JSON.stringify(servers)); }
+
+    function renderServerDropdown() {
+      var list = document.getElementById('server-dropdown-list');
+      if (!list) return;
+      list.innerHTML = servers.map(function (s) {
+        var isActive = s.id === activeServerId;
+        return '<button class="server-dropdown-item' + (isActive ? ' active' : '') + '" onclick="switchServer(' + s.id + ')">' +
+          '<span class="sdi-dot ' + s.status + '"></span>' +
+          '<span class="sdi-info"><span class="sdi-name">' + s.name + '</span><span class="sdi-ip">' + s.ip + '</span></span>' +
+          '<span class="sdi-map">' + (s.map || '—') + '</span>' +
+          (isActive ? '<svg class="sdi-check" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>' : '') +
+          '</button>';
+      }).join('');
+    }
+
+    function renderServersGrid() {
+      var grid = document.getElementById('servers-grid');
+      if (!grid) return;
+      grid.innerHTML = servers.map(function (s) {
+        var isActive = s.id === activeServerId;
+        return '<div class="server-card' + (isActive ? ' server-card-active' : '') + '">' +
+          '<div class="sc-header"><span class="sc-name">' + s.name + '</span><span class="sc-status-badge ' + s.status + '">' + (s.status === 'online' ? 'Online' : 'Offline') + '</span></div>' +
+          '<div class="sc-ip"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="5" rx="2"/><rect x="2" y="11" width="20" height="5" rx="2"/></svg>' + s.ip + '</div>' +
+          '<div class="sc-map"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/></svg>' + (s.map || '—') + '</div>' +
+          '<div class="sc-footer">' +
+          '<button class="btn btn-cmd sc-btn" onclick="switchServer(' + s.id + ')">' + (isActive ? 'Ativo' : 'Selecionar') + '</button>' +
+          '<button class="btn sc-del-btn" onclick="deleteServer(' + s.id + ')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg></button>' +
+          '</div>' +
+          '</div>';
+      }).join('');
+    }
+
+    function switchServer(id) {
+      activeServerId = id;
+      var s = servers.find(function (x) { return x.id === id; });
+      if (s) {
+        var topbarIp = document.getElementById('topbar-ip');
+        if (topbarIp) topbarIp.textContent = s.ip;
+      }
+      renderServerDropdown();
+      renderServersGrid();
+      closeDropdown();
+    }
+
+    function deleteServer(id) {
+      servers = servers.filter(function (s) { return s.id !== id; });
+      if (activeServerId === id) activeServerId = servers.length ? servers[0].id : null;
+      saveServers();
+      renderServerDropdown();
+      renderServersGrid();
+    }
+
+    function toggleServerDropdown() {
+      var dd = document.getElementById('server-dropdown');
+      var chevron = document.getElementById('switcher-chevron');
+      if (!dd) return;
+      var isOpen = !dd.classList.contains('hidden');
+      if (isOpen) { dd.classList.add('hidden'); if (chevron) chevron.style.transform = ''; }
+      else { dd.classList.remove('hidden'); if (chevron) chevron.style.transform = 'rotate(180deg)'; renderServerDropdown(); }
+    }
+
+    function closeDropdown() {
+      var dd = document.getElementById('server-dropdown');
+      var chevron = document.getElementById('switcher-chevron');
+      if (dd) dd.classList.add('hidden');
+      if (chevron) chevron.style.transform = '';
+    }
+
+    document.addEventListener('click', function (e) {
+      var sw = document.getElementById('server-switcher');
+      if (sw && !sw.contains(e.target)) closeDropdown();
+    });
+
+    /* ===== MODALS ===== */
+    function openModal(id) { var m = document.getElementById(id); if (m) m.classList.remove('hidden'); }
+    function closeModal(id) { var m = document.getElementById(id); if (m) m.classList.add('hidden'); }
+    function closeModalOnOverlay(e, id) { if (e.target === e.currentTarget) closeModal(id); }
+    function openAddServerModal() { closeDropdown(); openModal('add-server-modal'); }
+    function openTeamModal() { openModal('add-team-modal'); }
+
+    function saveNewServer() {
+      var name = document.getElementById('modal-server-name').value.trim();
+      var ip = document.getElementById('modal-server-ip').value.trim();
+      var map = document.getElementById('modal-server-map').value.trim();
+      if (!name || !ip) return;
+      var newId = Date.now();
+      servers.push({ id: newId, name: name, ip: ip, map: map || 'de_dust2', status: 'online' });
+      saveServers();
+      renderServerDropdown();
+      renderServersGrid();
+      closeModal('add-server-modal');
+      document.getElementById('modal-server-name').value = '';
+      document.getElementById('modal-server-ip').value = '';
+      document.getElementById('modal-server-map').value = '';
+    }
+
+    /* ===== TEAMS ===== */
+    var teams = JSON.parse(localStorage.getItem('cs2csm_teams') || 'null') || [
+      { id: 1, name: 'Team NaVi', tag: 'NaVi', players: 5 },
+      { id: 2, name: 'Team Astralis', tag: 'AST', players: 5 }
+    ];
+
+    function saveTeams() { localStorage.setItem('cs2csm_teams', JSON.stringify(teams)); }
+
+    function renderTeams() {
+      var grid = document.getElementById('teams-grid');
+      if (!grid) return;
+      if (!teams.length) { grid.innerHTML = '<p class="empty-state">Sem equipes registadas. Clica em "Nova Equipe".</p>'; return; }
+      grid.innerHTML = teams.map(function (t) {
+        return '<div class="team-card">' +
+          '<div class="tc-avatar">' + t.tag + '</div>' +
+          '<div class="tc-info"><span class="tc-name">' + t.name + '</span><span class="tc-players">' + t.players + ' jogadores</span></div>' +
+          '<button class="btn sc-del-btn" onclick="deleteTeam(' + t.id + ')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg></button>' +
+          '</div>';
+      }).join('');
+    }
+
+    function deleteTeam(id) {
+      teams = teams.filter(function (t) { return t.id !== id; });
+      saveTeams();
+      renderTeams();
+    }
+
+    function saveNewTeam() {
+      var name = document.getElementById('modal-team-name').value.trim();
+      var tag = document.getElementById('modal-team-tag').value.trim().toUpperCase();
+      var players = parseInt(document.getElementById('modal-team-players').value) || 5;
+      if (!name || !tag) return;
+      teams.push({ id: Date.now(), name: name, tag: tag.slice(0, 4), players: players });
+      saveTeams();
+      renderTeams();
+      closeModal('add-team-modal');
+      document.getElementById('modal-team-name').value = '';
+      document.getElementById('modal-team-tag').value = '';
+      document.getElementById('modal-team-players').value = '5';
+    }
+
+    /* ===== MAP SECTION ===== */
+    function selectMapFromGrid(mapName) {
+      var notice = document.getElementById('map-selected-notice');
+      var nameEl = document.getElementById('map-selected-name');
+      if (nameEl) nameEl.textContent = mapName;
+      if (notice) notice.style.display = 'flex';
+      document.querySelectorAll('.map-full-card').forEach(function (c) {
+        c.classList.toggle('mfc-selected', c.dataset.map === mapName);
+      });
+      // sync with dashboard form
+      var mapInput = document.getElementById('map');
+      if (mapInput) mapInput.value = mapName;
+      var summaryMap = document.getElementById('summary-map');
+      if (summaryMap) summaryMap.textContent = mapName;
+      var cardMap = document.getElementById('card-map');
+      if (cardMap) cardMap.textContent = mapName;
+    }
+
+    /* ===== SCOREBOARD ===== */
+    var sbState = { ct: 0, t: 0, round: 1 };
+    function sbScore(side, delta) {
+      sbState[side] = Math.max(0, sbState[side] + delta);
+      document.getElementById('sb-score-ct').textContent = sbState.ct;
+      document.getElementById('sb-score-t').textContent = sbState.t;
+      var total = sbState.ct + sbState.t;
+      sbState.round = total + 1;
+      document.getElementById('sb-round').textContent = Math.min(sbState.round, 24);
+    }
+
+    /* ===== SECTION NAVIGATION ===== */
+    document.addEventListener('DOMContentLoaded', function () {
+      // Init dropdown closed
+      var dd = document.getElementById('server-dropdown');
+      if (dd) dd.classList.add('hidden');
+
+      // Set active server IP in topbar
+      var active = servers.find(function (s) { return s.id === activeServerId; });
+      if (active) {
+        var topbarIp = document.getElementById('topbar-ip');
+        if (topbarIp) topbarIp.textContent = active.ip;
+      }
+
+      renderServersGrid();
+      renderTeams();
+
+      // Set current map in scoreboard
+      var mapInput = document.getElementById('map');
+      var sbMap = document.getElementById('sb-current-map');
+      if (mapInput && sbMap) sbMap.textContent = mapInput.value;
+
+      // Sidebar navigation with sections
+      document.querySelectorAll('.sidebar-item').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          var section = btn.dataset.section;
+          // hide all sections
+          document.querySelectorAll('.page-section').forEach(function (s) { s.classList.add('hidden'); });
+          // show/hide main dashboard content
+          var dashSections = document.querySelectorAll('.hero-banner, .overview-grid, .card');
+          if (section === 'dashboard') {
+            dashSections.forEach(function (s) { s.style.display = ''; });
+          } else {
+            dashSections.forEach(function (s) { s.style.display = 'none'; });
+            var target = document.getElementById('section-' + section);
+            if (target) target.classList.remove('hidden');
+          }
+        });
+      });
+    });
+  </script>
+
+</body>
+
+</html>
