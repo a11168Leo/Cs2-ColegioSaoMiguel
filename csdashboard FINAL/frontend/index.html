@@ -1,0 +1,1801 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CS2-CSM · Painel de Competição</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    /* ── PAGE TRANSITION ── */
+    .page-transition { position:fixed;inset:0;background:var(--bg0);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;opacity:0;pointer-events:none;transition:opacity .35s; }
+    .page-transition.active { opacity:1;pointer-events:all; }
+    .transition-logo { font-size:2.5rem;font-weight:800;color:var(--blue-bright); }
+    .transition-text { font-size:.85rem;color:var(--text-muted); }
+
+    /* ── SECTION ANIMATION ── */
+    .page-section { animation: sectionIn .35s ease; }
+    @keyframes sectionIn { from { opacity:0;transform:translateY(14px); } to { opacity:1;transform:translateY(0); } }
+
+    /* ── BRACKETS ── */
+    .brackets-wrap { display:flex; gap:0; overflow-x:auto; padding-bottom:16px; align-items:flex-start; }
+    .bracket-round-wrap { display:flex; flex-direction:row; align-items:stretch; }
+    .bracket-round { display:flex; flex-direction:column; min-width:200px; }
+    .bracket-round-title { font-size:.7rem; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:var(--text-muted); text-align:center; padding:8px 0 14px; font-family:"JetBrains Mono",monospace; }
+    .bracket-matches { display:flex; flex-direction:column; justify-content:space-around; flex:1; gap:16px; padding:0 10px; }
+
+    .bracket-match:hover { border-color:var(--border-hover); }
+    .bracket-match-team { display:flex; align-items:center; justify-content:space-between; padding:8px 10px; gap:8px; font-size:.8rem; }
+    .bracket-match-team:first-child { border-bottom:1px solid var(--border); }
+    .bmt-tag { font-weight:700; color:var(--blue-bright); font-size:.72rem; min-width:36px; font-family:"JetBrains Mono",monospace; }
+    .bmt-name { flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-size:.78rem; font-weight:500; }
+    .bmt-flag { font-size:.9rem; }
+    .bmt-score { font-weight:700; font-family:"JetBrains Mono",monospace; font-size:.85rem; min-width:20px; text-align:right; }
+    .bmt-score.winner { color:var(--green); }
+    .bmt-score.loser { color:var(--red); }
+    .bracket-match-team.team-winner { background:rgba(16,185,129,.08); }
+    .bracket-match-team.team-winner .bmt-name { color:#6ee7b7; font-weight:700; }
+    .bracket-match-team.team-loser .bmt-name { color:var(--red); opacity:.8; }
+    .bracket-connector-col { display:flex; flex-direction:column; width:32px; flex-shrink:0; position:relative; }
+    .add-bracket-btn { display:flex; align-items:center; justify-content:center; gap:6px; width:100%; padding:9px; background:rgba(37,99,235,.1); border:1px dashed var(--border); border-radius:8px; color:var(--blue-bright); font-size:.78rem; cursor:pointer; transition:background .2s; }
+    .add-bracket-btn:hover { background:rgba(37,99,235,.2); }
+    .tmpl-opt { display:block; width:100%; text-align:left; background:none; border:none; padding:8px 12px; color:var(--text); font-size:.78rem; cursor:pointer; border-radius:7px; font-family:inherit; transition:background .15s; }
+    .tmpl-opt:hover { background:rgba(255,255,255,.07); }
+    .bracket-match { position:absolute; width:220px; background:var(--bg2); border:1px solid var(--border); border-radius:10px; overflow:visible; transition:border-color .2s, box-shadow .2s; user-select:none; cursor:grab; z-index:2; }
+    .bracket-match.dragging { cursor:grabbing; box-shadow:0 8px 32px rgba(0,0,0,.5); z-index:10; border-color:var(--blue-bright); }
+    .brackets-toolbar { display:flex; align-items:center; gap:10px; margin-bottom:18px; flex-wrap:wrap; }
+    .bracket-format-badge { font-size:.7rem; font-weight:700; padding:3px 10px; border-radius:20px; background:rgba(37,99,235,.15); color:var(--blue-bright); border:1px solid var(--border); font-family:"JetBrains Mono",monospace; }
+    .auto-advance-toggle { display:flex; align-items:center; gap:6px; font-size:.75rem; color:var(--text-muted); cursor:pointer; user-select:none; }
+    .auto-advance-toggle input { accent-color:var(--green); width:14px; height:14px; }
+    .auto-advance-toggle.active { color:var(--green); }
+
+    /* ── TEAMS EXPANDED ── */
+    .team-row { background:var(--bg2);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:10px;transition:border-color .2s; }
+    .team-row:hover { border-color:var(--border-hover); }
+    .team-row-header { display:flex;align-items:center;gap:12px;padding:14px 16px;cursor:pointer;user-select:none; }
+    .tr-flag { font-size:1.4rem;line-height:1; }
+    .tr-tag { font-size:.75rem;font-weight:800;color:var(--blue-bright);background:rgba(37,99,235,.15);padding:3px 8px;border-radius:6px;min-width:44px;text-align:center; }
+    .tr-name { flex:1;font-weight:600;font-size:.95rem;color:var(--text); }
+    .tr-id { font-size:.72rem;color:var(--text-muted);font-family:"JetBrains Mono",monospace; }
+    .tr-responsible { font-size:.72rem;color:var(--text-muted);display:flex;align-items:center;gap:4px; }
+    .tr-chevron { color:var(--text-muted);transition:transform .25s;margin-left:auto; }
+    .team-row.open .tr-chevron { transform:rotate(180deg); }
+    .team-row-details { display:none;padding:0 16px 16px;border-top:1px solid var(--border);margin-top:0; }
+    .team-row.open .team-row-details { display:block; }
+    .trd-grid { display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin-top:12px; }
+    .trd-item { background:var(--bg3);border-radius:8px;padding:10px 12px; }
+    .trd-label { font-size:.65rem;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);margin-bottom:3px; }
+    .trd-value { font-size:.88rem;font-weight:600;color:var(--text); }
+    .tr-del-btn { background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.25);color:#ef4444;border-radius:7px;padding:5px 8px;cursor:pointer;font-size:.72rem;display:flex;align-items:center;gap:4px;transition:background .2s; }
+    .tr-del-btn:hover { background:rgba(239,68,68,.25); }
+
+    /* ── SCOREBOARD ENHANCED ── */
+    .sb-tab-table { width:100%;border-collapse:collapse;margin-top:8px; }
+    .sb-tab-table th { font-size:.65rem;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);padding:6px 10px;text-align:left;border-bottom:1px solid var(--border); }
+    .sb-tab-table th:not(:first-child) { text-align:center; }
+    .sb-tab-table td { padding:7px 10px;font-size:.8rem;border-bottom:1px solid rgba(37,99,235,.08); }
+    .sb-tab-table td:not(:first-child) { text-align:center;font-family:"JetBrains Mono",monospace; }
+    .sb-tab-table tr:last-child td { border-bottom:none; }
+    .sb-tab-section { background:var(--bg2);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-top:16px; }
+    .sb-tab-team-header { display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--border); }
+    .sb-tab-team-color { width:10px;height:10px;border-radius:50%; }
+    .sb-tab-team-name { font-size:.8rem;font-weight:700;letter-spacing:.05em; }
+    .sb-tab-team-score { margin-left:auto;font-weight:800;font-family:"JetBrains Mono",monospace;font-size:.9rem; }
+    .sb-player-name { font-weight:600;color:var(--text);max-width:140px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
+    .sb-kd { color:var(--text-muted); }
+    .sb-mvp { color:var(--amber);font-size:.65rem;margin-left:4px; }
+
+    /* ── COMMANDS SECTION ── */
+    .cmd-grid { display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;margin-top:16px; }
+    .cmd-card { background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:14px 16px;display:flex;flex-direction:column;gap:8px;transition:border-color .2s; }
+    .cmd-card:hover { border-color:var(--border-hover); }
+    .cmd-card-title { font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text-muted); }
+    .cmd-card-desc { font-size:.78rem;color:var(--text-muted);line-height:1.4; }
+    .cmd-card-row { display:flex;align-items:center;gap:8px;margin-top:4px; }
+    .cmd-input { flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:7px;padding:6px 10px;color:var(--text);font-size:.8rem;font-family:"JetBrains Mono",monospace; }
+    .cmd-input:focus { outline:none;border-color:var(--blue-bright); }
+    .cmd-run-btn { padding:6px 12px;background:var(--blue);color:#fff;border:none;border-radius:7px;font-size:.78rem;font-weight:600;cursor:pointer;white-space:nowrap;transition:background .2s; }
+    .cmd-run-btn:hover { background:var(--blue-light); }
+    .cmd-section-title { font-size:.85rem;font-weight:700;color:var(--text);margin-top:20px;margin-bottom:0;display:flex;align-items:center;gap:8px; }
+    .cmd-section-title::after { content:'';flex:1;height:1px;background:var(--border); }
+    .cmd-log { background:var(--bg1);border:1px solid var(--border);border-radius:10px;padding:12px 14px;font-family:"JetBrains Mono",monospace;font-size:.75rem;color:var(--green);min-height:80px;max-height:160px;overflow-y:auto;margin-top:12px;white-space:pre-wrap; }
+
+    /* ── MODAL EXTRA FIELDS ── */
+    .modal-field-row { display:grid;grid-template-columns:1fr 1fr;gap:12px; }
+    .flag-picker { display:flex;gap:6px;flex-wrap:wrap;margin-top:6px; }
+    .flag-btn { font-size:1.3rem;padding:4px 6px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;cursor:pointer;transition:border-color .15s;line-height:1; }
+    .flag-btn.selected { border-color:var(--blue-bright);background:rgba(37,99,235,.2); }
+    .flag-input-row { display:flex;gap:8px;align-items:center; }
+    .selected-flag-preview { font-size:1.5rem;line-height:1; }
+
+    /* PING BADGE */
+    .sc-ping { font-size:.68rem; font-family:"JetBrains Mono",monospace; padding:2px 7px; border-radius:10px; font-weight:600; }
+    .ping-ok { background:rgba(16,185,129,.12); color:#34d399; border:1px solid rgba(16,185,129,.2); }
+    .ping-off { background:rgba(90,122,170,.1); color:var(--text-muted); border:1px solid var(--border); }
+    .section-toolbar { display:flex; align-items:center; gap:10px; margin-bottom:18px; flex-wrap:wrap; }
+    .map-category-header { display:flex; align-items:center; gap:14px; margin-bottom:16px; }
+    .map-cat-icon { width:36px; height:36px; border-radius:10px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+    .map-cat-icon.blue { background:rgba(37,99,235,.15); color:var(--blue-bright); border:1px solid rgba(37,99,235,.2); }
+    .map-cat-icon.cyan { background:rgba(6,182,212,.12); color:var(--cyan-soft); border:1px solid rgba(6,182,212,.18); }
+    .map-cat-title { font-size:.9rem; font-weight:700; color:var(--text); }
+    .map-cat-sub { font-size:.72rem; color:var(--text-muted); margin-top:2px; }
+    .map-cat-badge { margin-left:auto; font-size:.65rem; font-weight:700; text-transform:uppercase; letter-spacing:.06em; background:rgba(37,99,235,.12); color:var(--blue-bright); border:1px solid rgba(37,99,235,.2); border-radius:20px; padding:3px 10px; }
+    .live-games-section { margin-top: 24px; }
+    .section-sub-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; }
+    .section-sub-title { display:flex; align-items:center; gap:8px; font-size:.9rem; font-weight:700; color:var(--text); }
+    .section-sub-badge { font-size:.65rem; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:#ef4444; background:rgba(239,68,68,.15); border:1px solid rgba(239,68,68,.3); border-radius:20px; padding:3px 10px; }
+    .live-dot-pulse { width:8px; height:8px; border-radius:50%; background:#ef4444; display:inline-block; animation:pulseDot 1.4s infinite; flex-shrink:0; }
+    @keyframes pulseDot { 0%,100%{opacity:1;transform:scale(1);} 50%{opacity:.5;transform:scale(1.3);} }
+    .live-games-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:12px; }
+    .live-game-card { background:var(--bg2); border:1px solid var(--border); border-radius:14px; padding:14px 16px; cursor:pointer; transition:border-color .2s, transform .15s; position:relative; }
+    .live-game-card:hover { border-color:var(--blue-bright); transform:translateY(-2px); }
+    .lgc-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
+    .lgc-map { font-size:.7rem; color:var(--text-muted); font-family:"JetBrains Mono",monospace; }
+    .lgc-round { font-size:.7rem; color:var(--cyan-soft); font-family:"JetBrains Mono",monospace; }
+    .lgc-teams { display:flex; align-items:center; justify-content:space-between; gap:8px; }
+    .lgc-team { display:flex; flex-direction:column; align-items:center; gap:4px; flex:1; }
+    .lgc-flag { font-size:1.4rem; }
+    .lgc-tag { font-size:.75rem; font-weight:700; color:var(--text); }
+    .lgc-score-center { display:flex; flex-direction:column; align-items:center; gap:2px; }
+    .lgc-score { font-size:1.6rem; font-weight:800; font-family:"JetBrains Mono",monospace; color:var(--blue-bright); }
+    .lgc-sep { font-size:.9rem; color:var(--text-muted); }
+    .lgc-time { font-size:.65rem; color:var(--text-muted); text-align:center; margin-top:8px; font-family:"JetBrains Mono",monospace; }
+    .lgc-click-hint { font-size:.62rem; color:var(--blue-bright); text-align:center; margin-top:4px; opacity:.7; }
+    .lgm-overlay { position:fixed; inset:0; background:rgba(0,0,0,.7); z-index:1000; display:flex; align-items:center; justify-content:center; padding:20px; }
+    .lgm-box { background:var(--bg1); border:1px solid var(--border); border-radius:20px; width:100%; max-width:640px; max-height:90vh; overflow-y:auto; }
+    .lgm-header { display:flex; align-items:center; justify-content:space-between; padding:16px 20px; border-bottom:1px solid var(--border); }
+    .lgm-title { font-size:.95rem; font-weight:700; color:var(--text); }
+    .lgm-close { background:none; border:none; color:var(--text-muted); cursor:pointer; padding:4px; border-radius:6px; }
+    .lgm-close:hover { color:var(--text); }
+    .lgm-body { padding:20px; }
+    .lgm-scoreline { display:flex; align-items:center; justify-content:center; gap:16px; margin-bottom:20px; }
+    .lgm-team-block { display:flex; flex-direction:column; align-items:center; gap:6px; min-width:100px; }
+    .lgm-team-flag { font-size:2rem; }
+    .lgm-team-name { font-size:.85rem; font-weight:700; color:var(--text); text-align:center; }
+    .lgm-big-score { font-size:2.5rem; font-weight:800; font-family:"JetBrains Mono",monospace; color:var(--blue-bright); }
+    .lgm-score-col { display:flex; align-items:center; gap:8px; }
+    .lgm-sep { font-size:1.5rem; color:var(--text-muted); }
+    .lgm-meta { text-align:center; font-size:.72rem; color:var(--text-muted); font-family:"JetBrains Mono",monospace; margin-bottom:18px; }
+    .lgm-stats-table { width:100%; border-collapse:collapse; }
+    .lgm-stats-table th { font-size:.62rem; text-transform:uppercase; letter-spacing:.08em; color:var(--text-muted); padding:5px 8px; text-align:left; border-bottom:1px solid var(--border); }
+    .lgm-stats-table th:not(:first-child) { text-align:center; }
+    .lgm-stats-table td { padding:6px 8px; font-size:.78rem; border-bottom:1px solid rgba(37,99,235,.07); }
+    .lgm-stats-table td:not(:first-child) { text-align:center; font-family:"JetBrains Mono",monospace; }
+    .lgm-team-row-header { display:flex; align-items:center; gap:8px; padding:8px 8px 6px; margin-top:12px; }
+    .lgm-team-color { width:8px; height:8px; border-radius:50%; }
+    .lgm-team-label { font-size:.78rem; font-weight:700; }
+    .lgm-team-score-label { margin-left:auto; font-weight:800; font-family:"JetBrains Mono",monospace; }
+    .gp-toolbar { display:flex; align-items:center; gap:10px; margin-bottom:18px; flex-wrap:wrap; }
+    .role-manager-only { /* shown/hidden by JS */ }
+  </style>
+</head>
+<body>
+
+  <!-- APP SHELL -->
+  <div class="app-shell" id="app-shell" style="display:none;">
+
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <div class="brand-icon">
+          <img src="logo_site.png" alt="Logo" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" />
+          <span class="brand-icon-fallback">CS</span>
+        </div>
+        <div class="brand-text">
+          <span class="brand-name">CS2-CSM</span>
+          <span class="brand-sub">Server Manager</span>
+        </div>
+      </div>
+
+      <nav class="sidebar-menu">
+        <button class="sidebar-item active" data-section="dashboard">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="3" width="8" height="8" rx="2"/><rect x="13" y="3" width="8" height="8" rx="2"/><rect x="3" y="13" width="8" height="8" rx="2"/><rect x="13" y="13" width="8" height="8" rx="2"/></svg>
+          Dashboard
+        </button>
+        <button class="sidebar-item" data-section="servidor">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="5" rx="2"/><rect x="2" y="11" width="20" height="5" rx="2"/><circle cx="18" cy="5.5" r="1" fill="currentColor"/><circle cx="18" cy="13.5" r="1" fill="currentColor"/></svg>
+          Servidor
+        </button>
+        <button class="sidebar-item" data-section="mapas">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
+          Mapas
+        </button>
+        <button class="sidebar-item" data-section="equipes">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 014-4h4a4 4 0 014 4v2"/><circle cx="19" cy="8" r="3"/><path d="M21 21v-1.5a3 3 0 00-2-2.83"/></svg>
+          Equipes
+        </button>
+        <button class="sidebar-item" data-section="brackets">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h4v12H3"/><path d="M21 6h-4v12h4"/><line x1="7" y1="12" x2="17" y2="12"/><line x1="7" y1="7" x2="12" y2="7"/><line x1="12" y1="7" x2="12" y2="12"/><line x1="7" y1="17" x2="12" y2="17"/><line x1="12" y1="17" x2="12" y2="12"/></svg>
+          Brackets
+        </button>
+        <button class="sidebar-item" data-section="comandos">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
+          Comandos
+        </button>
+        <button class="sidebar-item" data-section="regras">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+          Regras
+        </button>
+        <button class="sidebar-item" data-section="placar">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          Placar
+        </button>
+        <button class="sidebar-item role-manager-only hidden" data-section="gerir-pessoas">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+          Gerir Pessoas
+        </button>
+      </nav>
+
+      <div class="user-profile">
+        <div class="user-greeting">
+          <div class="user-avatar-wrap">
+            <img src="https://placehold.co/32x32/1e3a5f/60a5fa?text=U" alt="Avatar" class="user-avatar" id="sidebar-avatar" />
+          </div>
+          <div class="user-info-text">
+            <span class="user-name" id="sidebar-username">Utilizador</span>
+            <span class="user-role" id="sidebar-role">—</span>
+          </div>
+        </div>
+        <button class="login-btn" onclick="doLogout()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          Terminar Sessão
+        </button>
+      </div>
+    </aside>
+
+    <div class="main-wrap">
+      <header class="topbar">
+        <div class="topbar-left">
+          <span class="page-breadcrumb">Dashboard</span>
+          <span class="page-title-small">Painel de Competição CS2</span>
+        </div>
+        <div class="topbar-right">
+          <div class="server-switcher" id="server-switcher">
+            <button class="server-switcher-btn" id="server-switcher-btn" onclick="toggleServerDropdown()">
+              <span class="status-dot" id="switcher-dot"></span>
+              <span class="switcher-ip" id="topbar-ip">127.0.0.1:27015</span>
+              <svg class="switcher-chevron" id="switcher-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+            </button>
+            <div class="server-dropdown hidden" id="server-dropdown">
+              <div class="server-dropdown-header">Servidores Ativos</div>
+              <div class="server-dropdown-list" id="server-dropdown-list"></div>
+              <div class="server-dropdown-footer">
+                <button class="server-add-btn" onclick="openAddServerModal()">
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                  Adicionar Servidor
+                </button>
+              </div>
+            </div>
+          </div>
+          <div class="topbar-avatar" id="topbar-avatar">VS</div>
+        </div>
+      </header>
+
+      <main class="main-content" id="main-content">
+
+        <!-- ===== DASHBOARD ===== -->
+        <div id="view-dashboard">
+          <section class="hero-banner">
+            <div class="hero-text">
+              <h1 class="hero-title">Bem-vindo, <span class="hero-accent" id="hero-username">Utilizador</span></h1>
+              <p class="hero-sub">Gerencie servidor, mapa, equipes e torneios num único lugar.</p>
+              <div class="hero-stats-row">
+                <div class="hero-stat-chip">
+                  <span class="chip-label">Mapa</span>
+                  <span class="chip-value" id="summary-map">de_dust2</span>
+                </div>
+                <div class="hero-stat-chip">
+                  <span class="chip-label">Jogadores</span>
+                  <span class="chip-value" id="summary-players">10</span>
+                </div>
+                <div class="hero-stat-chip">
+                  <span class="chip-label">Servidor</span>
+                  <span class="chip-value" id="summary-ip">não configurado</span>
+                </div>
+              </div>
+            </div>
+            <div class="hero-visual">
+              <div class="hero-ring">
+                <div class="hero-ring-inner">
+                  <span class="hero-ring-label">Round</span>
+                  <span class="hero-ring-num">07</span>
+                  <span class="hero-ring-sub">de 30</span>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="overview-grid">
+            <article class="small-card card-hoverable">
+              <div class="card-icon-wrap blue">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/></svg>
+              </div>
+              <div class="card-stat-info">
+                <span class="card-stat-label">Mapa Ativo</span>
+                <span class="card-stat-value" id="card-map">de_dust2</span>
+              </div>
+            </article>
+
+            <article class="small-card card-hoverable">
+              <div class="card-icon-wrap cyan">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 014-4h4a4 4 0 014 4v2"/><circle cx="19" cy="8" r="3"/><path d="M21 21v-1.5a3 3 0 00-2-2.83"/></svg>
+              </div>
+              <div class="card-stat-info">
+                <span class="card-stat-label">Jogadores Online</span>
+                <span class="card-stat-value" id="card-players">10 / 10</span>
+              </div>
+            </article>
+
+            <article class="small-card card-hoverable">
+              <div class="card-icon-wrap green">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="5" rx="2"/><rect x="2" y="11" width="20" height="5" rx="2"/><circle cx="18" cy="5.5" r="1" fill="currentColor"/><circle cx="18" cy="13.5" r="1" fill="currentColor"/></svg>
+              </div>
+              <div class="card-stat-info">
+                <span class="card-stat-label">Status Servidor</span>
+                <span class="card-stat-value green-text" id="dash-server-status">Online</span>
+              </div>
+            </article>
+
+            <article class="small-card card-hoverable">
+              <div class="card-icon-wrap amber">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h4v12H3"/><path d="M21 6h-4v12h4"/><line x1="7" y1="12" x2="17" y2="12"/></svg>
+              </div>
+              <div class="card-stat-info">
+                <span class="card-stat-label">Equipas</span>
+                <span class="card-stat-value" id="dash-teams-count">0 registadas</span>
+              </div>
+            </article>
+
+          <!-- LIVE GAMES SECTION -->
+          <section class="live-games-section">
+            <div class="section-sub-header">
+              <div class="section-sub-title">
+                <span class="live-dot-pulse"></span>
+                Jogos ao Vivo
+              </div>
+              <span class="section-sub-badge">AO VIVO</span>
+            </div>
+            <div class="live-games-grid" id="live-games-grid">
+              <!-- populated by JS -->
+            </div>
+          </section>
+        </div>
+
+        <!-- ===== SERVIDOR ===== -->
+        <div id="view-servidor" class="hidden page-section">
+          <div class="section-hero">
+            <h2 class="section-hero-title">Gestão de Servidores</h2>
+            <p class="section-hero-sub">Monitoriza e gere todos os servidores de competição.</p>
+          </div>
+          <div class="section-toolbar">
+            <button class="btn btn-primary" onclick="openAddServerModal()">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Adicionar Servidor
+            </button>
+          </div>
+          <div class="servers-grid" id="servers-grid"></div>
+        </div>
+
+        <!-- ===== MAPAS ===== -->
+        <div id="view-mapas" class="hidden page-section">
+          <div class="section-hero">
+            <h2 class="section-hero-title">Mapas CS2</h2>
+            <p class="section-hero-sub">Pool competitivo oficial e todos os mapas de competição disponíveis.</p>
+          </div>
+
+          <div class="map-category-header">
+            <div class="map-cat-icon blue">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            </div>
+            <div>
+              <div class="map-cat-title">Pool do Major — IEM 2026</div>
+              <div class="map-cat-sub">Mapas da lootpool competitiva oficial do Major CS2 2026</div>
+            </div>
+            <span class="map-cat-badge">Active Duty</span>
+          </div>
+          <div class="maps-full-grid" id="active-duty-grid">
+            <div class="map-full-card" data-map="de_dust2" style="background-image:url('src/maps/Dust2.jpg')"><div class="mfc-overlay"></div><div class="mfc-info"><span class="mfc-name">de_dust2</span></div><button class="mfc-select-btn" onclick="selectMapFromGrid('de_dust2')">Selecionar</button></div>
+            <div class="map-full-card" data-map="de_inferno" style="background-image:url('src/maps/Inferno.jpg')"><div class="mfc-overlay"></div><div class="mfc-info"><span class="mfc-name">de_inferno</span></div><button class="mfc-select-btn" onclick="selectMapFromGrid('de_inferno')">Selecionar</button></div>
+            <div class="map-full-card" data-map="de_mirage" style="background-image:url('src/maps/Mirage.jpg')"><div class="mfc-overlay"></div><div class="mfc-info"><span class="mfc-name">de_mirage</span></div><button class="mfc-select-btn" onclick="selectMapFromGrid('de_mirage')">Selecionar</button></div>
+            <div class="map-full-card" data-map="de_nuke" style="background-image:url('src/maps/Nuke.jpg')"><div class="mfc-overlay"></div><div class="mfc-info"><span class="mfc-name">de_nuke</span></div><button class="mfc-select-btn" onclick="selectMapFromGrid('de_nuke')">Selecionar</button></div>
+            <div class="map-full-card" data-map="de_ancient" style="background-image:url('src/maps/Ancient.jpg')"><div class="mfc-overlay"></div><div class="mfc-info"><span class="mfc-name">de_ancient</span></div><button class="mfc-select-btn" onclick="selectMapFromGrid('de_ancient')">Selecionar</button></div>
+            <div class="map-full-card" data-map="de_anubis" style="background-image:url('src/maps/Anubis.jpg')"><div class="mfc-overlay"></div><div class="mfc-info"><span class="mfc-name">de_anubis</span></div><button class="mfc-select-btn" onclick="selectMapFromGrid('de_anubis')">Selecionar</button></div>
+            <div class="map-full-card" data-map="de_overpass" style="background-image:url('src/maps/Overpass.jpg')"><div class="mfc-overlay"></div><div class="mfc-info"><span class="mfc-name">de_overpass</span></div><button class="mfc-select-btn" onclick="selectMapFromGrid('de_overpass')">Selecionar</button></div>
+          </div>
+
+          <div class="map-selected-notice" id="map-selected-notice" style="display:none">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+            Mapa <strong id="map-selected-name"></strong> selecionado para a próxima partida.
+          </div>
+        </div>
+
+        <!-- ===== EQUIPES ===== -->
+        <div id="view-equipes" class="hidden page-section">
+          <div class="section-hero">
+            <h2 class="section-hero-title">Equipes</h2>
+            <p class="section-hero-sub">Regista e gere as equipas participantes. Clica numa equipa para ver os detalhes.</p>
+          </div>
+          <div class="teams-toolbar">
+            <button class="btn btn-primary" onclick="openTeamModal()">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Nova Equipa
+            </button>
+          </div>
+          <div id="teams-list"></div>
+        </div>
+
+        <!-- ===== BRACKETS ===== -->
+        <div id="view-brackets" class="hidden page-section">
+          <div class="section-hero">
+            <h2 class="section-hero-title">Brackets do Torneio</h2>
+            <p class="section-hero-sub">Cria e gere as eliminatórias. Introduz os resultados diretamente nos jogos.</p>
+          </div>
+          <div class="brackets-toolbar">
+            <button class="btn btn-primary" onclick="openBracketModal()">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Novo Jogo
+            </button>
+            <div style="position:relative;display:inline-block;">
+              <button class="btn btn-cmd" onclick="toggleTemplateMenu()">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+                Templates
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+              </button>
+              <div id="template-menu" style="display:none;position:absolute;top:calc(100% + 6px);left:0;background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:6px;z-index:200;min-width:180px;box-shadow:0 8px 24px rgba(0,0,0,.4);">
+                <button class="tmpl-opt" onclick="applyBracketTemplate(4)">🏆 4 Equipas (2 rounds)</button>
+                <button class="tmpl-opt" onclick="applyBracketTemplate(8)">🏆 8 Equipas (3 rounds)</button>
+                <button class="tmpl-opt" onclick="applyBracketTemplate(16)">🏆 16 Equipas (4 rounds)</button>
+              </div>
+            </div>
+            <button class="btn btn-cmd" onclick="clearBrackets()">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg>
+              Limpar
+            </button>
+            <label class="auto-advance-toggle" id="auto-advance-btn" onclick="toggleAutoAdvance()">
+              <input type="checkbox" id="auto-advance-check" />
+              <span>Auto-Avanço: OFF</span>
+            </label>
+          </div>
+          <div class="brackets-wrap" id="brackets-container"></div>
+        </div>
+
+        <!-- ===== COMANDOS ===== -->
+        <div id="view-comandos" class="hidden page-section">
+          <div class="section-hero">
+            <h2 class="section-hero-title">Comandos de Servidor</h2>
+            <p class="section-hero-sub">Aplica comandos diretamente no console do servidor CS2.</p>
+          </div>
+
+          <p class="cmd-section-title">Gestão de Partida</p>
+          <div class="cmd-grid">
+            <div class="cmd-card">
+              <span class="cmd-card-title">Reiniciar Ronda</span>
+              <span class="cmd-card-desc">Reinicia a ronda atual sem alterar o placar.</span>
+              <button class="cmd-run-btn" onclick="runCmd('mp_restartgame 1', 'Reiniciar ronda...')">▶ Executar</button>
+            </div>
+            <div class="cmd-card">
+              <span class="cmd-card-title">Pausa Técnica</span>
+              <span class="cmd-card-desc">Ativa pausa técnica imediatamente.</span>
+              <button class="cmd-run-btn" onclick="runCmd('mp_pause_match', 'Pausa ativada...')">▶ Executar</button>
+            </div>
+            <div class="cmd-card">
+              <span class="cmd-card-title">Retomar Jogo</span>
+              <span class="cmd-card-desc">Remove a pausa e retoma o jogo.</span>
+              <button class="cmd-run-btn" onclick="runCmd('mp_unpause_match', 'Jogo retomado...')">▶ Executar</button>
+            </div>
+            <div class="cmd-card">
+              <span class="cmd-card-title">Modo Warmup</span>
+              <span class="cmd-card-desc">Coloca o servidor em modo aquecimento.</span>
+              <button class="cmd-run-btn" onclick="runCmd('mp_warmup_start', 'Warmup iniciado...')">▶ Executar</button>
+            </div>
+            <div class="cmd-card">
+              <span class="cmd-card-title">Terminar Warmup</span>
+              <span class="cmd-card-desc">Termina o aquecimento e inicia a partida.</span>
+              <button class="cmd-run-btn" onclick="runCmd('mp_warmup_end', 'Warmup terminado...')">▶ Executar</button>
+            </div>
+            <div class="cmd-card">
+              <span class="cmd-card-title">Tempo de Warmup</span>
+              <span class="cmd-card-desc">Define duração do warmup em segundos.</span>
+              <div class="cmd-card-row">
+                <input type="number" class="cmd-input" id="warmup-time-val" value="300" min="30" max="3600" />
+                <button class="cmd-run-btn" onclick="runCmd('mp_warmuptime '+document.getElementById('warmup-time-val').value, 'Warmup time definido...')">▶</button>
+              </div>
+            </div>
+          </div>
+
+          <p class="cmd-section-title">Configurações de Servidor</p>
+          <div class="cmd-grid">
+            <div class="cmd-card">
+              <span class="cmd-card-title">Mudar Mapa</span>
+              <span class="cmd-card-desc">Muda para o mapa indicado.</span>
+              <div class="cmd-card-row">
+                <input type="text" class="cmd-input" id="changelevel-val" placeholder="de_dust2" />
+                <button class="cmd-run-btn" onclick="runCmd('changelevel '+document.getElementById('changelevel-val').value, 'A mudar mapa...')">▶</button>
+              </div>
+            </div>
+            <div class="cmd-card">
+              <span class="cmd-card-title">Max Jogadores</span>
+              <span class="cmd-card-desc">Define o máximo de jogadores no servidor.</span>
+              <div class="cmd-card-row">
+                <input type="number" class="cmd-input" id="maxplayers-val" value="10" min="2" max="64" />
+                <button class="cmd-run-btn" onclick="runCmd('mp_maxrounds '+document.getElementById('maxplayers-val').value, 'Max jogadores definido...')">▶</button>
+              </div>
+            </div>
+            <div class="cmd-card">
+              <span class="cmd-card-title">Kick por Slot</span>
+              <span class="cmd-card-desc">Remove jogador pelo número do slot.</span>
+              <div class="cmd-card-row">
+                <input type="number" class="cmd-input" id="kick-slot-val" value="1" min="1" max="64" />
+                <button class="cmd-run-btn" onclick="runCmd('kickid '+document.getElementById('kick-slot-val').value, 'Jogador removido...')">▶</button>
+              </div>
+            </div>
+            <div class="cmd-card">
+              <span class="cmd-card-title">Tempo de Ronda</span>
+              <span class="cmd-card-desc">Define tempo da ronda em segundos.</span>
+              <div class="cmd-card-row">
+                <input type="number" class="cmd-input" id="roundtime-val" value="115" min="30" max="600" />
+                <button class="cmd-run-btn" onclick="runCmd('mp_roundtime_defuse '+document.getElementById('roundtime-val').value, 'Round time definido...')">▶</button>
+              </div>
+            </div>
+            <div class="cmd-card">
+              <span class="cmd-card-title">Dinheiro Inicial</span>
+              <span class="cmd-card-desc">Define o dinheiro inicial por ronda.</span>
+              <div class="cmd-card-row">
+                <input type="number" class="cmd-input" id="startmoney-val" value="800" min="0" max="65535" />
+                <button class="cmd-run-btn" onclick="runCmd('mp_startmoney '+document.getElementById('startmoney-val').value, 'Start money definido...')">▶</button>
+              </div>
+            </div>
+            <div class="cmd-card">
+              <span class="cmd-card-title">Freeze Time</span>
+              <span class="cmd-card-desc">Tempo de freeze no início da ronda.</span>
+              <div class="cmd-card-row">
+                <input type="number" class="cmd-input" id="freezetime-val" value="15" min="0" max="60" />
+                <button class="cmd-run-btn" onclick="runCmd('mp_freezetime '+document.getElementById('freezetime-val').value, 'Freeze time definido...')">▶</button>
+              </div>
+            </div>
+          </div>
+
+          <p class="cmd-section-title">Comando Personalizado</p>
+          <div class="cmd-card" style="max-width:600px">
+            <span class="cmd-card-title">Console Direto</span>
+            <span class="cmd-card-desc">Escreve qualquer comando RCON para enviar ao servidor.</span>
+            <div class="cmd-card-row">
+              <input type="text" class="cmd-input" id="custom-cmd-val" placeholder="ex: sv_cheats 1" />
+              <button class="cmd-run-btn" onclick="runCmd(document.getElementById('custom-cmd-val').value,'Comando enviado...')">▶ Enviar</button>
+            </div>
+          </div>
+
+          <div class="cmd-log" id="cmd-log">-- Log de comandos --
+</div>
+          <div id="command-status" class="status" style="display:none"></div>
+        </div>
+
+        <!-- ===== REGRAS ===== -->
+        <div id="view-regras" class="hidden page-section">
+          <div class="section-hero">
+            <h2 class="section-hero-title">Regras da Competição</h2>
+            <p class="section-hero-sub">Regras oficiais aplicadas às partidas geridas por este painel.</p>
+          </div>
+          <div class="rules-grid">
+            <div class="rules-card">
+              <div class="rules-card-header"><div class="rules-icon blue"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div><span class="rules-card-title">Formato de Jogo</span></div>
+              <ul class="rules-list">
+                <li>MR12 — 12 rounds por half (24 rounds normais)</li>
+                <li>Overtime: MR3 com reset de dinheiro a $10 000</li>
+                <li>Knife round determina escolha de lado</li>
+                <li>Pausa técnica: 2 por equipa (60 seg cada)</li>
+              </ul>
+            </div>
+            <div class="rules-card">
+              <div class="rules-card-header"><div class="rules-icon cyan"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div><span class="rules-card-title">Conduta dos Jogadores</span></div>
+              <ul class="rules-list">
+                <li>Proibido uso de qualquer tipo de cheats ou exploits</li>
+                <li>Comunicação respeitosa obrigatória</li>
+                <li>Presença obrigatória 10 min antes do início</li>
+                <li>Substituições: máx. 1 por mapa em situação de emergência</li>
+              </ul>
+            </div>
+            <div class="rules-card">
+              <div class="rules-card-header"><div class="rules-icon amber"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/></svg></div><span class="rules-card-title">Mapa & Veto</span></div>
+              <ul class="rules-list">
+                <li>BO1: cada equipa bane 3 mapas; 1 restante é jogado</li>
+                <li>BO3: alternância ban/pick; último mapa é o decider</li>
+                <li>BO5: alternância ban/pick até 5 mapas definidos</li>
+                <li>Tempo de veto: 30 segundos por decisão</li>
+              </ul>
+            </div>
+            <div class="rules-card">
+              <div class="rules-card-header"><div class="rules-icon green"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div><span class="rules-card-title">Servidor & Técnico</span></div>
+              <ul class="rules-list">
+                <li>Tickrate: 128 tick obrigatório</li>
+                <li>Configs competitivas padrão da Valve aplicadas</li>
+                <li>Em caso de crash: round atual é repetido</li>
+                <li>GOTV obrigatório com delay de 90 segundos</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- ===== PLACAR ===== -->
+        <div id="view-placar" class="hidden page-section">
+          <div class="section-hero">
+            <h2 class="section-hero-title">Placar da Competição</h2>
+            <p class="section-hero-sub">Resultados ao vivo com estatísticas detalhadas estilo TAB do CS2.</p>
+          </div>
+          <div class="scoreboard-wrap">
+            <div class="scoreboard-match" id="scoreboard-live">
+              <div class="sb-live-badge">AO VIVO</div>
+              <div class="sb-match-row">
+                <div class="sb-team sb-team-left">
+                  <div class="sb-team-avatar" style="background:var(--blue)" id="sb-avatar-ct">CT</div>
+                  <span class="sb-team-name" id="sb-team-ct">Equipa CT</span>
+                </div>
+                <div class="sb-score-center">
+                  <span class="sb-score" id="sb-score-ct">0</span>
+                  <span class="sb-score-sep">:</span>
+                  <span class="sb-score" id="sb-score-t">0</span>
+                  <div class="sb-round-info">Round <span id="sb-round">1</span> / 24</div>
+                </div>
+                <div class="sb-team sb-team-right">
+                  <span class="sb-team-name" id="sb-team-t">Equipa T</span>
+                  <div class="sb-team-avatar" style="background:#c2410c" id="sb-avatar-t">T</div>
+                </div>
+              </div>
+              <div class="sb-map-row">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/></svg>
+                <span id="sb-current-map">de_dust2</span>
+              </div>
+              <div class="sb-controls">
+                <button class="btn btn-cmd" onclick="sbScore('ct',-1)">CT −</button>
+                <button class="btn btn-primary" onclick="sbScore('ct',1)">CT +</button>
+                <button class="btn btn-primary" onclick="sbScore('t',1)">T +</button>
+                <button class="btn btn-cmd" onclick="sbScore('t',-1)">T −</button>
+              </div>
+              <div style="margin-top:12px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+                <label style="font-size:.75rem;color:var(--text-muted)">Equipa CT:</label>
+                <input type="text" id="sb-ct-name-input" placeholder="Tag CT" style="width:110px;padding:5px 9px;background:var(--bg3);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:.78rem;" oninput="updateSbTeamNames()" />
+                <label style="font-size:.75rem;color:var(--text-muted)">Equipa T:</label>
+                <input type="text" id="sb-t-name-input" placeholder="Tag T" style="width:110px;padding:5px 9px;background:var(--bg3);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:.78rem;" oninput="updateSbTeamNames()" />
+              </div>
+            </div>
+
+            <!-- TAB CS2 STYLE -->
+            <div class="sb-tab-section">
+              <div class="sb-tab-team-header">
+                <div class="sb-tab-team-color" style="background:var(--blue)"></div>
+                <span class="sb-tab-team-name" id="sb-tab-ct-name">EQUIPA CT</span>
+                <span class="sb-tab-team-score" id="sb-tab-ct-score">0</span>
+              </div>
+              <table class="sb-tab-table">
+                <thead><tr><th>Jogador</th><th>K</th><th>A</th><th>D</th><th>K/D</th><th>HS%</th><th>ADR</th></tr></thead>
+                <tbody id="sb-ct-players"></tbody>
+              </table>
+            </div>
+
+            <div class="sb-tab-section">
+              <div class="sb-tab-team-header">
+                <div class="sb-tab-team-color" style="background:#c2410c"></div>
+                <span class="sb-tab-team-name" id="sb-tab-t-name">EQUIPA T</span>
+                <span class="sb-tab-team-score" id="sb-tab-t-score">0</span>
+              </div>
+              <table class="sb-tab-table">
+                <thead><tr><th>Jogador</th><th>K</th><th>A</th><th>D</th><th>K/D</th><th>HS%</th><th>ADR</th></tr></thead>
+                <tbody id="sb-t-players"></tbody>
+              </table>
+            </div>
+
+            <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap;">
+              <button class="btn btn-cmd" onclick="addPlayerToSb()">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                Adicionar Jogador
+              </button>
+              <button class="btn btn-cmd" onclick="clearScoreboard()">Limpar Placar</button>
+            </div>
+
+            <div class="scoreboard-history-card">
+              <div class="card-header">
+                <h3 class="card-title">Histórico de Partidas</h3>
+                <span class="card-badge">Resultados</span>
+              </div>
+              <div class="sb-history-list" id="sb-history-list">
+                <div class="sb-history-item">
+                  <span class="sb-hist-teams">NaVi <strong>13</strong> · <strong>11</strong> Astralis</span>
+                  <span class="sb-hist-map">de_mirage</span>
+                  <span class="sb-hist-result win">V</span>
+                </div>
+                <div class="sb-history-item">
+                  <span class="sb-hist-teams">NaVi <strong>16</strong> · <strong>8</strong> FAZE</span>
+                  <span class="sb-hist-map">de_inferno</span>
+                  <span class="sb-hist-result win">V</span>
+                </div>
+                <div class="sb-history-item">
+                  <span class="sb-hist-teams">NaVi <strong>9</strong> · <strong>16</strong> Vitality</span>
+                  <span class="sb-hist-map">de_nuke</span>
+                  <span class="sb-hist-result loss">D</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+
+        <!-- ===== GERIR PESSOAS (Manager Only) ===== -->
+        <div id="view-gerir-pessoas" class="hidden page-section">
+          <div class="section-hero">
+            <h2 class="section-hero-title">Gerir Pessoas &amp; Acessos</h2>
+            <p class="section-hero-sub">Gerencia todos os utilizadores da dashboard — exclusivo para Managers.</p>
+          </div>
+          <div class="gp-toolbar">
+            <div style="flex:1"></div>
+            <span id="gp-count-badge" class="bracket-format-badge">0 utilizadores</span>
+          </div>
+          <div id="gp-users-list"></div>
+
+        </div>
+
+      </main>
+    </div>
+  </div>
+
+  <!-- Overlay de transição -->
+  <div class="page-transition" id="page-transition">
+    <div class="transition-logo">CS</div>
+    <div class="transition-text" id="transition-text">A carregar...</div>
+  </div>
+
+  <!-- ===== MODAL: ADD SERVER ===== -->
+  <div class="modal-overlay hidden" id="add-server-modal" onclick="closeModalOnOverlay(event,'add-server-modal')">
+    <div class="modal-box">
+      <div class="modal-header">
+        <span class="modal-title">Adicionar Servidor</span>
+        <button class="modal-close" onclick="closeModal('add-server-modal')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+      </div>
+      <div class="modal-body">
+        <div class="modal-field"><label class="modal-label">Nome do Servidor</label><input type="text" id="modal-server-name" placeholder="ex: Servidor Principal" /></div>
+        <div class="modal-field"><label class="modal-label">Endereço IP</label><input type="text" id="modal-server-ip" placeholder="ex: 192.168.1.10:27015" /></div>
+        <div class="modal-field"><label class="modal-label">Mapa Inicial</label><input type="text" id="modal-server-map" placeholder="ex: de_dust2" /></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-cmd" onclick="closeModal('add-server-modal')">Cancelar</button>
+        <button class="btn btn-primary" onclick="saveNewServer()">Adicionar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== MODAL: ADD TEAM ===== -->
+  <div class="modal-overlay hidden" id="add-team-modal" onclick="closeModalOnOverlay(event,'add-team-modal')">
+    <div class="modal-box" style="max-width:500px">
+      <div class="modal-header">
+        <span class="modal-title">Nova Equipa</span>
+        <button class="modal-close" onclick="closeModal('add-team-modal')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+      </div>
+      <div class="modal-body">
+        <div class="modal-field-row">
+          <div class="modal-field">
+            <label class="modal-label">Team ID <span style="color:var(--red)">*</span></label>
+            <input type="text" id="modal-team-id" placeholder="ex: T001" />
+          </div>
+          <div class="modal-field">
+            <label class="modal-label">Tag do Time <span style="color:var(--red)">*</span></label>
+            <input type="text" id="modal-team-tag" placeholder="ex: NaVi" maxlength="5" />
+          </div>
+        </div>
+        <div class="modal-field">
+          <label class="modal-label">Nome do Time <span style="color:var(--red)">*</span></label>
+          <input type="text" id="modal-team-name" placeholder="ex: Natus Vincere" />
+        </div>
+        <div class="modal-field">
+          <label class="modal-label">Bandeira do País <span style="color:var(--red)">*</span></label>
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+            <span class="selected-flag-preview" id="flag-preview">🏳️</span>
+            <span style="font-size:.75rem;color:var(--text-muted);">Clica numa bandeira para selecionar</span>
+          </div>
+          <input type="hidden" id="modal-team-flag" value="" />
+          <div class="flag-picker" id="flag-picker">
+            <button class="flag-btn" type="button" onclick="pickFlag('🇵🇹')">🇵🇹</button>
+            <button class="flag-btn" type="button" onclick="pickFlag('🇧🇷')">🇧🇷</button>
+            <button class="flag-btn" type="button" onclick="pickFlag('🇺🇸')">🇺🇸</button>
+            <button class="flag-btn" type="button" onclick="pickFlag('🇩🇰')">🇩🇰</button>
+            <button class="flag-btn" type="button" onclick="pickFlag('🇫🇷')">🇫🇷</button>
+            <button class="flag-btn" type="button" onclick="pickFlag('🇺🇦')">🇺🇦</button>
+            <button class="flag-btn" type="button" onclick="pickFlag('🇸🇪')">🇸🇪</button>
+            <button class="flag-btn" type="button" onclick="pickFlag('🇳🇱')">🇳🇱</button>
+            <button class="flag-btn" type="button" onclick="pickFlag('🇩🇪')">🇩🇪</button>
+            <button class="flag-btn" type="button" onclick="pickFlag('🇷🇺')">🇷🇺</button>
+            <button class="flag-btn" type="button" onclick="pickFlag('🇦🇺')">🇦🇺</button>
+            <button class="flag-btn" type="button" onclick="pickFlag('🇨🇦')">🇨🇦</button>
+            <button class="flag-btn" type="button" onclick="pickFlag('🇧🇪')">🇧🇪</button>
+            <button class="flag-btn" type="button" onclick="pickFlag('🇪🇸')">🇪🇸</button>
+            <button class="flag-btn" type="button" onclick="pickFlag('🇵🇱')">🇵🇱</button>
+            <button class="flag-btn" type="button" onclick="pickFlag('🇨🇿')">🇨🇿</button>
+            <button class="flag-btn" type="button" onclick="pickFlag('🇸🇰')">🇸🇰</button>
+            <button class="flag-btn" type="button" onclick="pickFlag('🇫🇮')">🇫🇮</button>
+            <button class="flag-btn" type="button" onclick="pickFlag('🇳🇴')">🇳🇴</button>
+            <button class="flag-btn" type="button" onclick="pickFlag('🇬🇧')">🇬🇧</button>
+            <button class="flag-btn" type="button" onclick="pickFlag('🇨🇳')">🇨🇳</button>
+            <button class="flag-btn" type="button" onclick="pickFlag('🇰🇷')">🇰🇷</button>
+            <button class="flag-btn" type="button" onclick="pickFlag('🇧🇦')">🇧🇦</button>
+            <button class="flag-btn" type="button" onclick="pickFlag('🌍')">🌍</button>
+          </div>
+        </div>
+        <div class="modal-field">
+          <label class="modal-label">Responsável do Time <span style="color:var(--red)">*</span></label>
+          <input type="text" id="modal-team-responsible" placeholder="ex: Nome do capitão ou manager" />
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-cmd" onclick="closeModal('add-team-modal')">Cancelar</button>
+        <button class="btn btn-primary" onclick="saveNewTeam()">Criar Equipa</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== MODAL: ADD BRACKET MATCH ===== -->
+  <div class="modal-overlay hidden" id="add-bracket-modal" onclick="closeModalOnOverlay(event,'add-bracket-modal')">
+    <div class="modal-box" style="max-width:460px">
+      <div class="modal-header">
+        <span class="modal-title">Novo Jogo / Bracket</span>
+        <button class="modal-close" onclick="closeModal('add-bracket-modal')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+      </div>
+      <div class="modal-body">
+        <div class="modal-field">
+          <label class="modal-label">Nome da Fase / Round</label>
+          <input type="text" id="bracket-round-name" placeholder="ex: Quartos de Final" />
+        </div>
+        <div style="font-size:.72rem;color:var(--text-muted);margin-bottom:8px;font-family:'JetBrains Mono',monospace;">Podes deixar as equipas como TBD e adicionar depois</div>
+        <div class="modal-field-row">
+          <div class="modal-field">
+            <label class="modal-label">Equipa 1</label>
+            <select id="bracket-team1" style="width:100%;padding:7px 10px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:.82rem;"></select>
+          </div>
+          <div class="modal-field">
+            <label class="modal-label">Equipa 2</label>
+            <select id="bracket-team2" style="width:100%;padding:7px 10px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:.82rem;"></select>
+          </div>
+        </div>
+        <div class="modal-field-row">
+          <div class="modal-field">
+            <label class="modal-label">Score Equipa 1</label>
+            <input type="number" id="bracket-score1" min="0" value="0" />
+          </div>
+          <div class="modal-field">
+            <label class="modal-label">Score Equipa 2</label>
+            <input type="number" id="bracket-score2" min="0" value="0" />
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-cmd" onclick="closeModal('add-bracket-modal')">Cancelar</button>
+        <button class="btn btn-primary" onclick="saveBracketMatch()">Adicionar Jogo</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== MODAL: EDIT BRACKET MATCH ===== -->
+  <div class="modal-overlay hidden" id="edit-bracket-modal" onclick="closeModalOnOverlay(event,'edit-bracket-modal')">
+    <div class="modal-box" style="max-width:460px">
+      <div class="modal-header">
+        <span class="modal-title">Editar Jogo</span>
+        <button class="modal-close" onclick="closeModal('edit-bracket-modal')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="edit-bracket-id" />
+        <div class="modal-field">
+          <label class="modal-label">Nome da Fase / Round</label>
+          <input type="text" id="edit-bracket-round" placeholder="ex: Quartos de Final" />
+        </div>
+        <div class="modal-field-row">
+          <div class="modal-field">
+            <label class="modal-label">Equipa 1</label>
+            <select id="edit-bracket-team1" style="width:100%;padding:7px 10px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:.82rem;"></select>
+          </div>
+          <div class="modal-field">
+            <label class="modal-label">Equipa 2</label>
+            <select id="edit-bracket-team2" style="width:100%;padding:7px 10px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:.82rem;"></select>
+          </div>
+        </div>
+        <div class="modal-field-row">
+          <div class="modal-field">
+            <label class="modal-label">Score Equipa 1</label>
+            <input type="number" id="edit-bracket-score1" min="0" value="0" />
+          </div>
+          <div class="modal-field">
+            <label class="modal-label">Score Equipa 2</label>
+            <input type="number" id="edit-bracket-score2" min="0" value="0" />
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-cmd" onclick="deleteBracketMatch()" style="margin-right:auto;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:#fca5a5;">Apagar</button>
+        <button class="btn btn-cmd" onclick="closeModal('edit-bracket-modal')">Cancelar</button>
+        <button class="btn btn-primary" onclick="saveEditBracketMatch()">Guardar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== MODAL: ADD PLAYER TO SCOREBOARD ===== -->
+  <div class="modal-overlay hidden" id="add-player-modal" onclick="closeModalOnOverlay(event,'add-player-modal')">
+    <div class="modal-box" style="max-width:420px">
+      <div class="modal-header">
+        <span class="modal-title">Adicionar Jogador</span>
+        <button class="modal-close" onclick="closeModal('add-player-modal')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+      </div>
+      <div class="modal-body">
+        <div class="modal-field"><label class="modal-label">Nome / Nick</label><input type="text" id="ap-name" placeholder="ex: s1mple" /></div>
+        <div class="modal-field">
+          <label class="modal-label">Time</label>
+          <select id="ap-side" style="width:100%;padding:7px 10px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:.82rem;"><option value="ct">CT</option><option value="t">T</option></select>
+        </div>
+        <div class="modal-field-row">
+          <div class="modal-field"><label class="modal-label">Kills</label><input type="number" id="ap-k" value="0" min="0" /></div>
+          <div class="modal-field"><label class="modal-label">Assists</label><input type="number" id="ap-a" value="0" min="0" /></div>
+        </div>
+        <div class="modal-field-row">
+          <div class="modal-field"><label class="modal-label">Deaths</label><input type="number" id="ap-d" value="0" min="0" /></div>
+          <div class="modal-field"><label class="modal-label">HS%</label><input type="number" id="ap-hs" value="0" min="0" max="100" /></div>
+        </div>
+        <div class="modal-field"><label class="modal-label">ADR (Avg Dmg / Round)</label><input type="number" id="ap-adr" value="0" min="0" /></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-cmd" onclick="closeModal('add-player-modal')">Cancelar</button>
+        <button class="btn btn-primary" onclick="savePlayerToSb()">Adicionar</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="auth.js"></script>
+  <script src="manage-users.js"></script>
+  <script>
+  /* ════════════════════════════════════════════
+     NAVIGATION — section switcher with animation
+  ════════════════════════════════════════════ */
+  var VIEWS = ['dashboard','servidor','mapas','equipes','brackets','comandos','regras','placar','gerir-pessoas'];
+
+  function showSection(section) {
+    VIEWS.forEach(function(v) {
+      var el = document.getElementById('view-'+v);
+      if (el) el.classList.add('hidden');
+    });
+    var target = document.getElementById('view-'+section);
+    if (target) {
+      target.classList.remove('hidden');
+      // re-trigger animation
+      target.style.animation = 'none';
+      void target.offsetWidth;
+      target.style.animation = '';
+    }
+    // breadcrumb
+    var bc = document.querySelector('.page-breadcrumb');
+    if (bc) bc.textContent = section.charAt(0).toUpperCase()+section.slice(1);
+
+    // update sidebar active
+    document.querySelectorAll('.sidebar-item').forEach(function(btn){
+      btn.classList.toggle('active', btn.dataset.section === section);
+    });
+
+    if (section === 'gerir-pessoas') {
+      var raw = localStorage.getItem('cs2csm_session') || sessionStorage.getItem('cs2csm_session');
+      var sess = raw ? JSON.parse(raw) : null;
+      if (!sess || sess.role !== 'Manager') { showSection('dashboard'); return; }
+      renderGpUsers();
+    }
+    if (section === 'brackets') renderBrackets();
+    if (section === 'equipes') renderTeams();
+    if (section === 'servidor') renderServersGrid();
+    if (section === 'placar') renderScoreboard();
+    updateDashboardCounts();
+  }
+
+  function pageTransitionTo(section) {
+    var overlay = document.getElementById('page-transition');
+    var label = document.getElementById('transition-text');
+    if (!overlay) return showSection(section);
+    if (label) label.textContent = 'A carregar...';
+    overlay.classList.add('active');
+    setTimeout(function(){
+      showSection(section);
+      overlay.classList.remove('active');
+    }, 320);
+  }
+
+  document.addEventListener('DOMContentLoaded', function(){
+    document.querySelectorAll('.sidebar-item').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        pageTransitionTo(btn.dataset.section);
+      });
+    });
+
+    var dd = document.getElementById('server-dropdown');
+    if (dd) dd.classList.add('hidden');
+
+    var active = servers.find(function(s){ return s.id === activeServerId; });
+    if (active) {
+      document.getElementById('topbar-ip').textContent = active.ip;
+    }
+
+    renderServersGrid();
+    renderTeams();
+    renderBrackets();
+    renderScoreboard();
+    updateDashboardCounts();
+  });
+
+  function updateDashboardCounts(){
+    var tc = document.getElementById('dash-teams-count');
+    if (tc) tc.textContent = teams.length + ' registada' + (teams.length===1?'':'s');
+  }
+
+  /* ════════════════════════════════════════════
+     SERVERS
+  ════════════════════════════════════════════ */
+  var servers = JSON.parse(localStorage.getItem('cs2csm_servers') || 'null') || [
+    { id: 1, name: 'Servidor Principal', ip: '127.0.0.1:27015', map: 'de_dust2', status: 'online', players: 10, maxPlayers: 10, tickrate: 128, ping: 15 },
+    { id: 2, name: 'Servidor Backup', ip: '192.168.1.5:27015', map: 'de_mirage', status: 'online', players: 6, maxPlayers: 10, tickrate: 128, ping: 22 },
+    { id: 3, name: 'Servidor Treino', ip: '10.0.0.2:27016', map: 'de_inferno', status: 'offline', players: 0, maxPlayers: 10, tickrate: 64, ping: 0 }
+  ];
+  var activeServerId = (servers.find(function(s){ return s.status==='online'; }) || servers[0]).id;
+
+  function saveServers(){ localStorage.setItem('cs2csm_servers', JSON.stringify(servers)); }
+
+  function renderServerDropdown(){
+    var list = document.getElementById('server-dropdown-list');
+    if (!list) return;
+    list.innerHTML = servers.map(function(s){
+      var isActive = s.id === activeServerId;
+      return '<button class="server-dropdown-item'+(isActive?' active':'')+'" onclick="switchServer('+s.id+')">' +
+        '<span class="sdi-dot '+s.status+'"></span>' +
+        '<span class="sdi-info"><span class="sdi-name">'+s.name+'</span><span class="sdi-ip">'+s.ip+'</span></span>' +
+        '<span class="sdi-map">'+(s.map||'—')+'</span>' +
+        (isActive ? '<svg class="sdi-check" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>' : '') +
+        '</button>';
+    }).join('');
+  }
+
+  function renderServersGrid(){
+    var grid = document.getElementById('servers-grid');
+    if (!grid) return;
+    grid.innerHTML = servers.map(function(s){
+      var isActive = s.id === activeServerId;
+      return '<div class="server-card'+(isActive?' server-card-active':'')+'">' +
+        '<div class="sc-header"><span class="sc-name">'+s.name+'</span><span class="sc-status-badge '+s.status+'">'+(s.status==='online'?'Online':'Offline')+'</span>' +
+        '<span class="sc-ping '+(s.status==='online'?'ping-ok':'ping-off')+'">'+(s.status==='online'? (s.ping||'?')+'ms' : '—') + '</span></div>' +
+        '<div class="sc-ip"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="5" rx="2"/><rect x="2" y="11" width="20" height="5" rx="2"/></svg>'+s.ip+'</div>' +
+        '<div class="sc-map"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/></svg>'+(s.map||'—')+'</div>' +
+        '<div class="sc-map" style="margin-top:4px"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 014-4h4a4 4 0 014 4v2"/></svg>'+(s.players||0)+' / '+(s.maxPlayers||10)+' jogadores</div>' +
+        '<div class="sc-footer">' +
+        '<button class="btn btn-cmd sc-btn" onclick="switchServer('+s.id+')">'+(isActive?'Ativo':'Selecionar')+'</button>' +
+        '<button class="btn sc-del-btn" onclick="deleteServer('+s.id+')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg></button>' +
+        '</div></div>';
+    }).join('');
+  }
+
+  function switchServer(id){
+    activeServerId = id;
+    var s = servers.find(function(x){ return x.id===id; });
+    if (s) {
+      document.getElementById('topbar-ip').textContent = s.ip;
+      // update dashboard summary
+      var summaryIp = document.getElementById('summary-ip');
+      if (summaryIp) summaryIp.textContent = s.ip;
+      var cardMap = document.getElementById('card-map');
+      if (cardMap) cardMap.textContent = s.map || '—';
+      var summaryMap = document.getElementById('summary-map');
+      if (summaryMap) summaryMap.textContent = s.map || '—';
+      var cardPlayers = document.getElementById('card-players');
+      if (cardPlayers) cardPlayers.textContent = (s.players||0)+' / '+(s.maxPlayers||10);
+      var dashStatus = document.getElementById('dash-server-status');
+      if (dashStatus) { dashStatus.textContent = s.status==='online'?'Online':'Offline'; dashStatus.className='card-stat-value '+(s.status==='online'?'green-text':''); }
+    }
+    renderServerDropdown();
+    renderServersGrid();
+    closeDropdown();
+  }
+
+  function deleteServer(id){
+    servers = servers.filter(function(s){ return s.id!==id; });
+    if (activeServerId===id) activeServerId = servers.length ? servers[0].id : null;
+    saveServers(); renderServerDropdown(); renderServersGrid();
+  }
+
+  function toggleServerDropdown(){
+    var dd = document.getElementById('server-dropdown');
+    var chevron = document.getElementById('switcher-chevron');
+    if (!dd) return;
+    var isOpen = !dd.classList.contains('hidden');
+    if (isOpen) { dd.classList.add('hidden'); if (chevron) chevron.style.transform=''; }
+    else { dd.classList.remove('hidden'); if (chevron) chevron.style.transform='rotate(180deg)'; renderServerDropdown(); }
+  }
+
+  function closeDropdown(){
+    var dd = document.getElementById('server-dropdown');
+    var chevron = document.getElementById('switcher-chevron');
+    if (dd) dd.classList.add('hidden');
+    if (chevron) chevron.style.transform='';
+  }
+
+  document.addEventListener('click', function(e){
+    var sw = document.getElementById('server-switcher');
+    if (sw && !sw.contains(e.target)) closeDropdown();
+  });
+
+  function openModal(id){ var m=document.getElementById(id); if(m) m.classList.remove('hidden'); }
+  function closeModal(id){ var m=document.getElementById(id); if(m) m.classList.add('hidden'); }
+  function closeModalOnOverlay(e,id){ if(e.target===e.currentTarget) closeModal(id); }
+  function openAddServerModal(){ closeDropdown(); openModal('add-server-modal'); }
+
+  function saveNewServer(){
+    var name = document.getElementById('modal-server-name').value.trim();
+    var ip = document.getElementById('modal-server-ip').value.trim();
+    var map = document.getElementById('modal-server-map').value.trim();
+    if (!name||!ip) return;
+    var newId = Date.now();
+    servers.push({ id: newId, name: name, ip: ip, map: map||'de_dust2', status: 'online', players: 0, maxPlayers: 10, tickrate: 128, ping: 0 });
+    saveServers(); renderServerDropdown(); renderServersGrid(); closeModal('add-server-modal');
+    document.getElementById('modal-server-name').value='';
+    document.getElementById('modal-server-ip').value='';
+    document.getElementById('modal-server-map').value='';
+  }
+
+  /* ════════════════════════════════════════════
+     TEAMS
+  ════════════════════════════════════════════ */
+  var teams = JSON.parse(localStorage.getItem('cs2csm_teams') || 'null') || [
+    { id: 1, teamId: 'T001', name: 'Natus Vincere', tag: 'NaVi', flag: '🇺🇦', responsible: 's1mple' },
+    { id: 2, teamId: 'T002', name: 'Astralis', tag: 'AST', flag: '🇩🇰', responsible: 'gla1ve' }
+  ];
+
+  function saveTeams(){ localStorage.setItem('cs2csm_teams', JSON.stringify(teams)); }
+
+  function openTeamModal(){ openModal('add-team-modal'); }
+
+  function pickFlag(emoji){
+    document.getElementById('modal-team-flag').value = emoji;
+    document.getElementById('flag-preview').textContent = emoji;
+    document.querySelectorAll('.flag-btn').forEach(function(b){ b.classList.toggle('selected', b.textContent===emoji); });
+  }
+
+  function previewFlag(){
+    var val = document.getElementById('modal-team-flag').value;
+    document.getElementById('flag-preview').textContent = val || '🏳️';
+  }
+
+  function saveNewTeam(){
+    var teamId = document.getElementById('modal-team-id').value.trim();
+    var tag = document.getElementById('modal-team-tag').value.trim().toUpperCase();
+    var name = document.getElementById('modal-team-name').value.trim();
+    var flag = document.getElementById('modal-team-flag').value.trim() || '🏳️';
+    var responsible = document.getElementById('modal-team-responsible').value.trim();
+    if (!teamId||!tag||!name||!responsible) { alert('Preenche todos os campos obrigatórios!'); return; }
+    teams.push({ id: Date.now(), teamId: teamId, name: name, tag: tag.slice(0,5), flag: flag, responsible: responsible });
+    saveTeams(); renderTeams(); closeModal('add-team-modal'); updateDashboardCounts();
+    ['modal-team-id','modal-team-tag','modal-team-name','modal-team-flag','modal-team-responsible'].forEach(function(id){ document.getElementById(id).value=''; });
+    document.getElementById('flag-preview').textContent='🏳️';
+    document.querySelectorAll('.flag-btn').forEach(function(b){ b.classList.remove('selected'); });
+  }
+
+  function deleteTeam(id){
+    teams = teams.filter(function(t){ return t.id!==id; });
+    saveTeams(); renderTeams(); updateDashboardCounts();
+  }
+
+  function toggleTeamRow(id){
+    var row = document.getElementById('team-row-'+id);
+    if (row) row.classList.toggle('open');
+  }
+
+  function renderTeams(){
+    var list = document.getElementById('teams-list');
+    if (!list) return;
+    if (!teams.length) { list.innerHTML='<p class="empty-state" style="color:var(--text-muted);text-align:center;padding:32px">Sem equipas registadas. Clica em "Nova Equipa".</p>'; return; }
+    list.innerHTML = teams.map(function(t){
+      return '<div class="team-row" id="team-row-'+t.id+'">' +
+        '<div class="team-row-header" onclick="toggleTeamRow('+t.id+')">' +
+          '<span class="tr-flag">'+(t.flag||'🏳️')+'</span>' +
+          '<span class="tr-tag">'+(t.tag||'?')+'</span>' +
+          '<span class="tr-name">'+(t.name||'—')+'</span>' +
+          '<span class="tr-id">#'+(t.teamId||'—')+'</span>' +
+          '<span class="tr-responsible"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="7" r="4"/><path d="M3 21v-2a4 4 0 014-4h10a4 4 0 014 4v2"/></svg>'+(t.responsible||'—')+'</span>' +
+          '<svg class="tr-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>' +
+        '</div>' +
+        '<div class="team-row-details">' +
+          '<div class="trd-grid">' +
+            '<div class="trd-item"><div class="trd-label">Team ID</div><div class="trd-value">'+(t.teamId||'—')+'</div></div>' +
+            '<div class="trd-item"><div class="trd-label">Nome Completo</div><div class="trd-value">'+(t.name||'—')+'</div></div>' +
+            '<div class="trd-item"><div class="trd-label">Tag</div><div class="trd-value">'+(t.tag||'—')+'</div></div>' +
+            '<div class="trd-item"><div class="trd-label">País</div><div class="trd-value">'+(t.flag||'—')+'</div></div>' +
+            '<div class="trd-item"><div class="trd-label">Responsável</div><div class="trd-value">'+(t.responsible||'—')+'</div></div>' +
+          '</div>' +
+          '<div style="margin-top:12px">' +
+            '<button class="tr-del-btn" onclick="deleteTeam('+t.id+')">' +
+              '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg>Remover Equipa' +
+            '</button>' +
+          '</div>' +
+        '</div>' +
+      '</div>';
+    }).join('');
+  }
+
+  /* ════════════════════════════════════════════
+     BRACKETS
+  ════════════════════════════════════════════ */
+  var bracketMatches     = JSON.parse(localStorage.getItem('cs2csm_brackets')      || '[]');
+  var bracketPositions   = JSON.parse(localStorage.getItem('cs2csm_bracket_pos')   || '{}');
+  var bracketConnections = JSON.parse(localStorage.getItem('cs2csm_bracket_conn')  || '[]');
+  var autoAdvance = false;
+
+  function saveBrackets()    { localStorage.setItem('cs2csm_brackets',     JSON.stringify(bracketMatches));     }
+  function saveBracketPos()  { localStorage.setItem('cs2csm_bracket_pos',  JSON.stringify(bracketPositions));   }
+  function saveBracketConn() { localStorage.setItem('cs2csm_bracket_conn', JSON.stringify(bracketConnections)); }
+
+  function tbdTeam(){ return { id:'', tag:'TBD', name:'TBD', flag:'🏳️' }; }
+
+  function toggleTemplateMenu(){
+    var m = document.getElementById('template-menu');
+    if (m) m.style.display = (m.style.display === 'none' ? 'block' : 'none');
+  }
+  document.addEventListener('click', function(e){
+    var menu = document.getElementById('template-menu');
+    if (menu && menu.style.display !== 'none' && !menu.parentElement.contains(e.target))
+      menu.style.display = 'none';
+  });
+
+  function applyBracketTemplate(sz){
+    if (!confirm('Substituir brackets atuais pelo template de '+sz+' equipas?')) return;
+    var tmenu = document.getElementById('template-menu');
+    if (tmenu) tmenu.style.display='none';
+    bracketMatches=[]; bracketConnections=[]; bracketPositions={};
+    var base = Date.now();
+    var MW=220, MH=100, YGAP=28, XGAP=90;
+    function mkMatch(id,round){ return {id:id,round:round,team1:tbdTeam(),team2:tbdTeam(),score1:0,score2:0}; }
+    function colY(ri,n,ch){ return (ch-(n*(MH+YGAP)-YGAP))/2 + ri*(MH+YGAP); }
+
+    if (sz===4){
+      var ids=[base+1,base+2,base+3];
+      bracketMatches=[mkMatch(ids[0],'Semi-Final'),mkMatch(ids[1],'Semi-Final'),mkMatch(ids[2],'Final')];
+      var ch=2*(MH+YGAP);
+      bracketPositions[ids[0]]={x:0,        y:colY(0,2,ch)};
+      bracketPositions[ids[1]]={x:0,        y:colY(1,2,ch)};
+      bracketPositions[ids[2]]={x:MW+XGAP,  y:colY(0,1,ch)};
+      bracketConnections=[{fromId:ids[0],toId:ids[2]},{fromId:ids[1],toId:ids[2]}];
+    } else if (sz===8){
+      var ids=[base+1,base+2,base+3,base+4,base+5,base+6,base+7];
+      bracketMatches=[
+        mkMatch(ids[0],'Quartos'),mkMatch(ids[1],'Quartos'),mkMatch(ids[2],'Quartos'),mkMatch(ids[3],'Quartos'),
+        mkMatch(ids[4],'Semi-Final'),mkMatch(ids[5],'Semi-Final'),mkMatch(ids[6],'Final')];
+      var ch=4*(MH+YGAP);
+      for(var i=0;i<4;i++) bracketPositions[ids[i]]={x:0,           y:colY(i,4,ch)};
+      bracketPositions[ids[4]]={x:MW+XGAP,      y:colY(0,2,ch)};
+      bracketPositions[ids[5]]={x:MW+XGAP,      y:colY(1,2,ch)};
+      bracketPositions[ids[6]]={x:2*(MW+XGAP),  y:colY(0,1,ch)};
+      bracketConnections=[
+        {fromId:ids[0],toId:ids[4]},{fromId:ids[1],toId:ids[4]},
+        {fromId:ids[2],toId:ids[5]},{fromId:ids[3],toId:ids[5]},
+        {fromId:ids[4],toId:ids[6]},{fromId:ids[5],toId:ids[6]}];
+    } else if (sz===16){
+      var ids=[];
+      for(var i=0;i<15;i++) ids.push(base+1+i);
+      var rn=['Oitavos','Quartos','Semi-Final','Final'];
+      for(var i=0;i<8;i++)  bracketMatches.push(mkMatch(ids[i],   rn[0]));
+      for(var i=0;i<4;i++)  bracketMatches.push(mkMatch(ids[8+i], rn[1]));
+      for(var i=0;i<2;i++)  bracketMatches.push(mkMatch(ids[12+i],rn[2]));
+      bracketMatches.push(mkMatch(ids[14],rn[3]));
+      var ch=8*(MH+YGAP);
+      for(var i=0;i<8;i++)  bracketPositions[ids[i]]    ={x:0,               y:colY(i,8,ch)};
+      for(var i=0;i<4;i++)  bracketPositions[ids[8+i]]  ={x:MW+XGAP,         y:colY(i,4,ch)};
+      for(var i=0;i<2;i++)  bracketPositions[ids[12+i]] ={x:2*(MW+XGAP),     y:colY(i,2,ch)};
+      bracketPositions[ids[14]]={x:3*(MW+XGAP), y:colY(0,1,ch)};
+      bracketConnections=[];
+      for(var i=0;i<8;i++) bracketConnections.push({fromId:ids[i],   toId:ids[8+Math.floor(i/2)]});
+      for(var i=0;i<4;i++) bracketConnections.push({fromId:ids[8+i], toId:ids[12+Math.floor(i/2)]});
+      bracketConnections.push({fromId:ids[12],toId:ids[14]});
+      bracketConnections.push({fromId:ids[13],toId:ids[14]});
+    }
+    saveBrackets(); saveBracketPos(); saveBracketConn(); renderBrackets();
+  }
+
+  function openBracketModal(){
+    var opts = teams.map(function(t){ return '<option value="'+t.id+'">'+t.flag+' ['+t.tag+'] '+t.name+'</option>'; }).join('');
+    var tbd  = '<option value="">— TBD —</option>';
+    document.getElementById('bracket-team1').innerHTML = tbd+opts;
+    document.getElementById('bracket-team2').innerHTML = tbd+opts;
+    openModal('add-bracket-modal');
+  }
+
+  function saveBracketMatch(){
+    var roundName = document.getElementById('bracket-round-name').value.trim() || 'Round';
+    var t1id = document.getElementById('bracket-team1').value;
+    var t2id = document.getElementById('bracket-team2').value;
+    var s1   = parseInt(document.getElementById('bracket-score1').value)||0;
+    var s2   = parseInt(document.getElementById('bracket-score2').value)||0;
+    var t1   = teams.find(function(t){ return String(t.id)===t1id; }) || tbdTeam();
+    var t2   = teams.find(function(t){ return String(t.id)===t2id; }) || tbdTeam();
+    var newId = Date.now();
+    var n = Object.keys(bracketPositions).length;
+    bracketPositions[newId] = { x:(n%4)*270, y:Math.floor(n/4)*160 };
+    bracketMatches.push({id:newId,round:roundName,team1:t1,team2:t2,score1:s1,score2:s2});
+    saveBrackets(); saveBracketPos(); renderBrackets(); closeModal('add-bracket-modal');
+    document.getElementById('bracket-round-name').value='';
+    document.getElementById('bracket-score1').value=0;
+    document.getElementById('bracket-score2').value=0;
+  }
+
+  function openEditBracketModal(id){
+    var m = bracketMatches.find(function(x){ return x.id===id; });
+    if (!m) return;
+    var opts = teams.map(function(t){ return '<option value="'+t.id+'">'+t.flag+' ['+t.tag+'] '+t.name+'</option>'; }).join('');
+    var tbd  = '<option value="">— TBD —</option>';
+    document.getElementById('edit-bracket-team1').innerHTML = tbd+opts;
+    document.getElementById('edit-bracket-team2').innerHTML = tbd+opts;
+    document.getElementById('edit-bracket-id').value     = id;
+    document.getElementById('edit-bracket-round').value  = m.round;
+    document.getElementById('edit-bracket-score1').value = m.score1;
+    document.getElementById('edit-bracket-score2').value = m.score2;
+    var s1 = document.querySelector('#edit-bracket-team1 option[value="'+m.team1.id+'"]');
+    var s2 = document.querySelector('#edit-bracket-team2 option[value="'+m.team2.id+'"]');
+    if (s1) s1.selected=true;
+    if (s2) s2.selected=true;
+    openModal('edit-bracket-modal');
+  }
+
+  function saveEditBracketMatch(){
+    var id = parseInt(document.getElementById('edit-bracket-id').value);
+    var m  = bracketMatches.find(function(x){ return x.id===id; });
+    if (!m) return;
+    var t1id = document.getElementById('edit-bracket-team1').value;
+    var t2id = document.getElementById('edit-bracket-team2').value;
+    m.round  = document.getElementById('edit-bracket-round').value.trim() || m.round;
+    m.score1 = parseInt(document.getElementById('edit-bracket-score1').value)||0;
+    m.score2 = parseInt(document.getElementById('edit-bracket-score2').value)||0;
+    m.team1  = teams.find(function(t){ return String(t.id)===t1id; }) || m.team1;
+    m.team2  = teams.find(function(t){ return String(t.id)===t2id; }) || m.team2;
+    if (autoAdvance && m.score1 !== m.score2){
+      var winner = m.score1>m.score2 ? m.team1 : m.team2;
+      bracketConnections.forEach(function(conn){
+        if (conn.fromId===id){
+          var nm = bracketMatches.find(function(x){ return x.id===conn.toId; });
+          if (nm){
+            var slots = bracketConnections.filter(function(c){ return c.toId===conn.toId; });
+            var si2   = slots.findIndex(function(c){ return c.fromId===id; });
+            if (si2===0) nm.team1=winner; else nm.team2=winner;
+          }
+        }
+      });
+      saveBracketConn();
+    }
+    saveBrackets(); renderBrackets(); closeModal('edit-bracket-modal');
+  }
+
+  function deleteBracketMatch(){
+    var id = parseInt(document.getElementById('edit-bracket-id').value);
+    if (!confirm('Apagar este jogo do bracket?')) return;
+    bracketMatches    = bracketMatches.filter(function(x){ return x.id!==id; });
+    bracketConnections= bracketConnections.filter(function(c){ return c.fromId!==id && c.toId!==id; });
+    delete bracketPositions[id];
+    saveBrackets(); saveBracketPos(); saveBracketConn(); renderBrackets(); closeModal('edit-bracket-modal');
+  }
+
+  function clearBrackets(){
+    if (!confirm('Tens a certeza que queres limpar todos os brackets?')) return;
+    bracketMatches=[]; bracketPositions={}; bracketConnections=[];
+    saveBrackets(); saveBracketPos(); saveBracketConn(); renderBrackets();
+  }
+
+  function toggleAutoAdvance(){
+    autoAdvance = !autoAdvance;
+    var btn = document.getElementById('auto-advance-btn');
+    if (btn){ btn.classList.toggle('active', autoAdvance); btn.querySelector('span').textContent = autoAdvance ? 'Auto-Avanço: ON' : 'Auto-Avanço: OFF'; }
+  }
+
+  function makeBracketMatchDraggable(el, matchId){
+    var isDragging=false, startX, startY, origLeft, origTop;
+    el.addEventListener('mousedown', function(e){
+      if (e.target.tagName==='BUTTON' || e.target.closest('button')) return;
+      e.preventDefault();
+      isDragging=true; el.classList.add('dragging');
+      startX=e.clientX; startY=e.clientY;
+      origLeft=parseInt(el.style.left)||0; origTop=parseInt(el.style.top)||0;
+      document.addEventListener('mousemove', onMove);
+      document.addEventListener('mouseup',   onUp);
+    });
+    function onMove(e){
+      if (!isDragging) return;
+      el.style.left = Math.max(0, origLeft+e.clientX-startX)+'px';
+      el.style.top  = Math.max(0, origTop +e.clientY-startY)+'px';
+      drawBracketConnectors();
+    }
+    function onUp(){
+      if (!isDragging) return;
+      isDragging=false; el.classList.remove('dragging');
+      bracketPositions[matchId]={x:parseInt(el.style.left)||0, y:parseInt(el.style.top)||0};
+      saveBracketPos(); drawBracketConnectors();
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup',   onUp);
+    }
+  }
+
+  function drawBracketConnectors(){
+    var container = document.getElementById('brackets-container');
+    if (!container) return;
+    var oldSvg = container.querySelector('.bracket-svg-overlay');
+    if (oldSvg) oldSvg.remove();
+    if (!bracketConnections.length) return;
+    var svgNS='http://www.w3.org/2000/svg';
+    var svg = document.createElementNS(svgNS,'svg');
+    svg.classList.add('bracket-svg-overlay');
+    svg.style.cssText='position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;overflow:visible;z-index:1;';
+    var cRect = container.getBoundingClientRect();
+    bracketConnections.forEach(function(conn){
+      var fEl = document.getElementById('bmatch-'+conn.fromId);
+      var tEl = document.getElementById('bmatch-'+conn.toId);
+      if (!fEl||!tEl) return;
+      var fR=fEl.getBoundingClientRect(), tR=tEl.getBoundingClientRect();
+      var x1=fR.right -cRect.left, y1=fR.top+fR.height/2-cRect.top;
+      var x2=tR.left  -cRect.left, y2=tR.top+tR.height/2-cRect.top;
+      var cx=(x1+x2)/2;
+      var path=document.createElementNS(svgNS,'path');
+      path.setAttribute('d','M '+x1+' '+y1+' C '+cx+' '+y1+' '+cx+' '+y2+' '+x2+' '+y2);
+      path.setAttribute('stroke','rgba(99,170,255,0.55)');
+      path.setAttribute('stroke-width','2');
+      path.setAttribute('fill','none');
+      svg.appendChild(path);
+    });
+    container.insertBefore(svg, container.firstChild);
+  }
+
+  function renderBrackets(){
+    var container = document.getElementById('brackets-container');
+    if (!container) return;
+    if (!bracketMatches.length){
+      container.innerHTML='<p style="color:var(--text-muted);padding:32px;text-align:center;">Nenhum jogo registado. Clica em &quot;Novo Jogo&quot; ou escolhe um Template.</p>';
+      return;
+    }
+    container.style.cssText='position:relative;overflow:auto;min-height:520px;';
+    var maxH=520, maxW=400;
+    bracketMatches.forEach(function(m){
+      var p=bracketPositions[m.id]||{x:0,y:0};
+      maxH=Math.max(maxH,(p.y||0)+160);
+      maxW=Math.max(maxW,(p.x||0)+280);
+    });
+    container.style.minHeight=maxH+'px';
+    container.style.minWidth =maxW+'px';
+    var html='';
+    bracketMatches.forEach(function(m){
+      var p=bracketPositions[m.id]||{x:0,y:0};
+      var w1=m.score1>m.score2&&(m.score1>0||m.score2>0);
+      var w2=m.score2>m.score1&&(m.score1>0||m.score2>0);
+      html+='<div class="bracket-match" id="bmatch-'+m.id+'" style="left:'+(p.x||0)+'px;top:'+(p.y||0)+'px;">'+
+        '<div style="font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text-muted);padding:5px 10px 2px;font-family:\"JetBrains Mono\",monospace;">'+m.round+'</div>'+
+        '<div class="bracket-match-team'+(w1?' team-winner':w2?' team-loser':'')+'">'+
+          '<span class="bmt-flag">'+(m.team1.flag||'\u{1F3F3}\uFE0F')+'</span>'+
+          '<span class="bmt-tag">'+(m.team1.tag||'TBD')+'</span>'+
+          '<span class="bmt-name">'+(m.team1.name||'TBD')+'</span>'+
+          '<span class="bmt-score'+(w1?' winner':w2?' loser':'')+'">'+(m.score1!=null?m.score1:'\u2014')+'</span>'+
+        '</div>'+
+        '<div class="bracket-match-team'+(w2?' team-winner':w1?' team-loser':'')+'">'+
+          '<span class="bmt-flag">'+(m.team2.flag||'\u{1F3F3}\uFE0F')+'</span>'+
+          '<span class="bmt-tag">'+(m.team2.tag||'TBD')+'</span>'+
+          '<span class="bmt-name">'+(m.team2.name||'TBD')+'</span>'+
+          '<span class="bmt-score'+(w2?' winner':w1?' loser':'')+'">'+(m.score2!=null?m.score2:'\u2014')+'</span>'+
+        '</div>'+
+        '<button onclick="openEditBracketModal('+(m.id)+')" style="position:absolute;top:4px;right:4px;background:rgba(37,99,235,.15);border:none;border-radius:5px;padding:2px 7px;font-size:.62rem;color:var(--blue-bright);cursor:pointer;font-family:\"JetBrains Mono\",monospace;z-index:3;">edit</button>'+
+      '</div>';
+    });
+    container.innerHTML=html;
+    bracketMatches.forEach(function(m){
+      var el=document.getElementById('bmatch-'+m.id);
+      if (el) makeBracketMatchDraggable(el, m.id);
+    });
+    requestAnimationFrame(drawBracketConnectors);
+  }
+
+  function selectMapFromGrid(mapName){
+    var notice = document.getElementById('map-selected-notice');
+    var nameEl = document.getElementById('map-selected-name');
+    if (nameEl) nameEl.textContent = mapName;
+    if (notice) notice.style.display = 'flex';
+    document.querySelectorAll('.map-full-card').forEach(function(c){
+      c.classList.toggle('mfc-selected', c.dataset.map === mapName);
+    });
+    var cardMap = document.getElementById('card-map');
+    if (cardMap) cardMap.textContent = mapName;
+    var summaryMap = document.getElementById('summary-map');
+    if (summaryMap) summaryMap.textContent = mapName;
+  }
+
+  /* ════════════════════════════════════════════
+     COMMANDS
+  ════════════════════════════════════════════ */
+  function runCmd(cmd, label){
+    if (!cmd||!cmd.trim()) return;
+    var log = document.getElementById('cmd-log');
+    var now = new Date().toLocaleTimeString('pt-PT');
+    if (log) log.textContent += '['+now+'] $ '+cmd+'\n';
+    // send to API
+    fetch('/api/command', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ action: cmd })
+    }).then(function(r){ return r.json(); }).then(function(res){
+      if (log) log.textContent += '         → '+(res.message||'OK')+'\n';
+      if (log) log.scrollTop = log.scrollHeight;
+    }).catch(function(){
+      if (log) log.textContent += '         → [sem backend ativo]\n';
+      if (log) log.scrollTop = log.scrollHeight;
+    });
+  }
+
+  /* ════════════════════════════════════════════
+     SCOREBOARD
+  ════════════════════════════════════════════ */
+  var sbState = { ct: 0, t: 0, round: 1 };
+  var sbPlayers = JSON.parse(localStorage.getItem('cs2csm_sb_players') || '[]');
+
+  function saveSbPlayers(){ localStorage.setItem('cs2csm_sb_players', JSON.stringify(sbPlayers)); }
+
+  function sbScore(side, delta){
+    sbState[side] = Math.max(0, sbState[side]+delta);
+    document.getElementById('sb-score-ct').textContent = sbState.ct;
+    document.getElementById('sb-score-t').textContent = sbState.t;
+    document.getElementById('sb-tab-ct-score').textContent = sbState.ct;
+    document.getElementById('sb-tab-t-score').textContent = sbState.t;
+    var total = sbState.ct+sbState.t;
+    sbState.round = total+1;
+    document.getElementById('sb-round').textContent = Math.min(sbState.round, 24);
+  }
+
+  function updateSbTeamNames(){
+    var ctName = document.getElementById('sb-ct-name-input').value || 'Equipa CT';
+    var tName = document.getElementById('sb-t-name-input').value || 'Equipa T';
+    document.getElementById('sb-team-ct').textContent = ctName;
+    document.getElementById('sb-team-t').textContent = tName;
+    document.getElementById('sb-tab-ct-name').textContent = ctName.toUpperCase();
+    document.getElementById('sb-tab-t-name').textContent = tName.toUpperCase();
+    document.getElementById('sb-avatar-ct').textContent = ctName.slice(0,2).toUpperCase();
+    document.getElementById('sb-avatar-t').textContent = tName.slice(0,2).toUpperCase();
+  }
+
+  function addPlayerToSb(){ openModal('add-player-modal'); }
+
+  function savePlayerToSb(){
+    var name = document.getElementById('ap-name').value.trim();
+    var side = document.getElementById('ap-side').value;
+    var k = parseInt(document.getElementById('ap-k').value)||0;
+    var a = parseInt(document.getElementById('ap-a').value)||0;
+    var d = parseInt(document.getElementById('ap-d').value)||1;
+    var hs = parseInt(document.getElementById('ap-hs').value)||0;
+    var adr = parseInt(document.getElementById('ap-adr').value)||0;
+    if (!name) return;
+    sbPlayers.push({ id: Date.now(), name: name, side: side, k: k, a: a, d: d, hs: hs, adr: adr });
+    saveSbPlayers(); renderScoreboard(); closeModal('add-player-modal');
+    ['ap-name','ap-k','ap-a','ap-d','ap-hs','ap-adr'].forEach(function(id){ document.getElementById(id).value=''; });
+  }
+
+  function clearScoreboard(){
+    sbPlayers = []; saveSbPlayers(); renderScoreboard();
+  }
+
+  function renderScoreboard(){
+    var ctBody = document.getElementById('sb-ct-players');
+    var tBody = document.getElementById('sb-t-players');
+    if (!ctBody||!tBody) return;
+
+    function playerRow(p){
+      var kd = p.d>0?(p.k/p.d).toFixed(2):'∞';
+      var kdClass = p.k>p.d?'bmt-score winner':p.k<p.d?'bmt-score loser':'';
+      return '<tr>' +
+        '<td class="sb-player-name">'+p.name+'</td>' +
+        '<td>'+p.k+'</td>' +
+        '<td style="color:var(--text-muted)">'+p.a+'</td>' +
+        '<td style="color:var(--red)">'+p.d+'</td>' +
+        '<td class="'+kdClass+'">'+kd+'</td>' +
+        '<td>'+p.hs+'%</td>' +
+        '<td style="color:var(--cyan-soft)">'+p.adr+'</td>' +
+        '</tr>';
+    }
+
+    var ctPlayers = sbPlayers.filter(function(p){ return p.side==='ct'; });
+    var tPlayers = sbPlayers.filter(function(p){ return p.side==='t'; });
+
+    ctBody.innerHTML = ctPlayers.length ? ctPlayers.sort(function(a,b){ return b.k-a.k; }).map(playerRow).join('') : '<tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:12px;font-size:.78rem;">Nenhum jogador. Clica em "Adicionar Jogador".</td></tr>';
+    tBody.innerHTML = tPlayers.length ? tPlayers.sort(function(a,b){ return b.k-a.k; }).map(playerRow).join('') : '<tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:12px;font-size:.78rem;">Nenhum jogador. Clica em "Adicionar Jogador".</td></tr>';
+  }
+
+  /* ════════════════════════════════════════════
+     LIVE GAMES
+  ════════════════════════════════════════════ */
+  var liveGames = [
+    {
+      id: 1, map: 'de_mirage', round: 'Round 14 / 24',
+      team1: { tag:'NaVi', name:'Natus Vincere', flag:'🇺🇦', color:'#2563eb' },
+      team2: { tag:'AST', name:'Astralis', flag:'🇩🇰', color:'#f59e0b' },
+      score1: 8, score2: 6, time: 'Em curso · 01:23',
+      players1: [
+        { name:'s1mple',k:18,a:3,d:9,hs:67,adr:112 },
+        { name:'b1t',k:14,a:5,d:10,hs:42,adr:88 },
+        { name:'electroNic',k:11,a:6,d:11,hs:38,adr:74 },
+        { name:'Perfecto',k:9,a:7,d:12,hs:33,adr:65 },
+        { name:'npl',k:7,a:4,d:13,hs:28,adr:55 }
+      ],
+      players2: [
+        { name:'device',k:12,a:4,d:11,hs:50,adr:78 },
+        { name:'gla1ve',k:10,a:8,d:12,hs:30,adr:68 },
+        { name:'Xyp9x',k:9,a:6,d:13,hs:22,adr:62 },
+        { name:'dupreeh',k:13,a:3,d:10,hs:46,adr:82 },
+        { name:'Magisk',k:11,a:5,d:11,hs:55,adr:76 }
+      ]
+    },
+    {
+      id: 2, map: 'de_inferno', round: 'Round 9 / 24',
+      team1: { tag:'VIT', name:'Team Vitality', flag:'🇫🇷', color:'#f59e0b' },
+      team2: { tag:'FaZe', name:'FaZe Clan', flag:'🌍', color:'#ef4444' },
+      score1: 4, score2: 5, time: 'Em curso · 02:45',
+      players1: [
+        { name:'ZywOo',k:10,a:2,d:5,hs:70,adr:108 },
+        { name:'apEX',k:7,a:4,d:7,hs:43,adr:82 },
+        { name:'misutaaa',k:6,a:5,d:8,hs:33,adr:68 },
+        { name:'Spinx',k:8,a:3,d:6,hs:50,adr:88 },
+        { name:'flameZ',k:5,a:6,d:9,hs:40,adr:64 }
+      ],
+      players2: [
+        { name:'karrigan',k:6,a:7,d:7,hs:17,adr:66 },
+        { name:'rain',k:9,a:4,d:6,hs:44,adr:90 },
+        { name:'NiKo',k:11,a:3,d:5,hs:55,adr:99 },
+        { name:'broky',k:8,a:5,d:7,hs:50,adr:84 },
+        { name:'ropz',k:7,a:4,d:8,hs:43,adr:78 }
+      ]
+    },
+    {
+      id: 3, map: 'de_nuke', round: 'Round 22 / 24',
+      team1: { tag:'G2', name:'G2 Esports', flag:'🇪🇺', color:'#10b981' },
+      team2: { tag:'HERO', name:'Team Heroic', flag:'🇩🇰', color:'#8b5cf6' },
+      score1: 11, score2: 11, time: 'Overtime · 00:58',
+      players1: [
+        { name:'HooXi',k:20,a:8,d:18,hs:45,adr:88 },
+        { name:'m0NESY',k:24,a:4,d:17,hs:63,adr:102 },
+        { name:'jks',k:18,a:7,d:19,hs:39,adr:79 },
+        { name:'nexa',k:15,a:10,d:20,hs:27,adr:72 },
+        { name:'hunter',k:19,a:6,d:18,hs:47,adr:91 }
+      ],
+      players2: [
+        { name:'cadiaN',k:17,a:9,d:19,hs:35,adr:84 },
+        { name:'TeSeS',k:21,a:5,d:18,hs:52,adr:94 },
+        { name:'stavn',k:22,a:6,d:17,hs:59,adr:99 },
+        { name:'Kylar',k:16,a:7,d:20,hs:44,adr:78 },
+        { name:'sjuush',k:14,a:8,d:21,hs:36,adr:70 }
+      ]
+    }
+  ];
+
+  function renderLiveGames(){
+    var grid = document.getElementById('live-games-grid');
+    if (!grid) return;
+    grid.innerHTML = liveGames.map(function(g){
+      return '<div class="live-game-card" onclick="openLiveGame('+g.id+')">' +
+        '<div class="lgc-header"><span class="lgc-map">'+g.map+'</span><span class="lgc-round">'+g.round+'</span></div>' +
+        '<div class="lgc-teams">' +
+          '<div class="lgc-team"><span class="lgc-flag">'+g.team1.flag+'</span><span class="lgc-tag">'+g.team1.tag+'</span></div>' +
+          '<div class="lgc-score-center"><div style="display:flex;align-items:center;gap:6px;"><span class="lgc-score">'+g.score1+'</span><span class="lgc-sep">:</span><span class="lgc-score">'+g.score2+'</span></div></div>' +
+          '<div class="lgc-team"><span class="lgc-flag">'+g.team2.flag+'</span><span class="lgc-tag">'+g.team2.tag+'</span></div>' +
+        '</div>' +
+        '<div class="lgc-time">'+g.time+'</div>' +
+        '<div class="lgc-click-hint">▶ clica para ver estatísticas</div>' +
+      '</div>';
+    }).join('');
+  }
+
+  function closeLiveGameModal() {
+    var m = document.getElementById('live-game-modal');
+    if (m) m.remove();
+  }
+
+  function openLiveGame(id){
+    var g = liveGames.find(function(x){ return x.id===id; });
+    if (!g) return;
+    var existing = document.getElementById('live-game-modal');
+    if (existing) existing.remove();
+    function playerRows(players){
+      return players.map(function(p){
+        var kd = p.d>0?(p.k/p.d).toFixed(2):'∞';
+        var kdStyle = p.k>p.d?'color:var(--green)':p.k<p.d?'color:var(--red)':'color:var(--text)';
+        return '<tr><td style="font-weight:600">'+p.name+'</td><td>'+p.k+'</td><td style="color:var(--text-muted)">'+p.a+'</td><td style="color:var(--red)">'+p.d+'</td><td style="'+kdStyle+'">'+kd+'</td><td>'+p.hs+'%</td><td style="color:var(--cyan-soft)">'+p.adr+'</td></tr>';
+      }).join('');
+    }
+    var modal = document.createElement('div');
+    modal.id = 'live-game-modal';
+    modal.className = 'lgm-overlay';
+    modal.onclick = function(e){ if(e.target===modal) modal.remove(); };
+    modal.innerHTML =
+      '<div class="lgm-box">' +
+        '<div class="lgm-header">' +
+          '<span class="lgm-title">📊 Estatísticas ao Vivo · '+g.map+'</span>' +
+          '<button class="lgm-close" onclick="closeLiveGameModal()">' +
+            '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>' +
+          '</button>' +
+        '</div>' +
+        '<div class="lgm-body">' +
+          '<div class="lgm-scoreline">' +
+            '<div class="lgm-team-block"><span class="lgm-team-flag">'+g.team1.flag+'</span><span class="lgm-team-name">'+g.team1.name+'</span></div>' +
+            '<div class="lgm-score-col"><span class="lgm-big-score" style="color:'+g.team1.color+'">'+g.score1+'</span><span class="lgm-sep">:</span><span class="lgm-big-score" style="color:'+g.team2.color+'">'+g.score2+'</span></div>' +
+            '<div class="lgm-team-block"><span class="lgm-team-flag">'+g.team2.flag+'</span><span class="lgm-team-name">'+g.team2.name+'</span></div>' +
+          '</div>' +
+          '<div class="lgm-meta">'+g.round+' · '+g.time+'</div>' +
+          '<div class="lgm-team-row-header"><div class="lgm-team-color" style="background:'+g.team1.color+'"></div><span class="lgm-team-label">'+g.team1.name+'</span><span class="lgm-team-score-label">'+g.score1+'</span></div>' +
+          '<table class="lgm-stats-table"><thead><tr><th>Jogador</th><th>K</th><th>A</th><th>D</th><th>K/D</th><th>HS%</th><th>ADR</th></tr></thead><tbody>'+playerRows(g.players1)+'</tbody></table>' +
+          '<div class="lgm-team-row-header" style="margin-top:16px"><div class="lgm-team-color" style="background:'+g.team2.color+'"></div><span class="lgm-team-label">'+g.team2.name+'</span><span class="lgm-team-score-label">'+g.score2+'</span></div>' +
+          '<table class="lgm-stats-table"><thead><tr><th>Jogador</th><th>K</th><th>A</th><th>D</th><th>K/D</th><th>HS%</th><th>ADR</th></tr></thead><tbody>'+playerRows(g.players2)+'</tbody></table>' +
+        '</div>' +
+      '</div>';
+    document.body.appendChild(modal);
+  }
+
+  /* ════════════════════════════════════════════
+     GERIR PESSOAS (Manager Only)
+  ════════════════════════════════════════════ */
+
+
+
+
+  function gpDeleteUser(key){
+    if (!confirm('Apagar utilizador "'+key+'"?')) return;
+    var users = JSON.parse(localStorage.getItem('cs2csm_users')||'{}');
+    delete users[key];
+    localStorage.setItem('cs2csm_users', JSON.stringify(users));
+    renderGpUsers();
+  }
+
+  function gpChangeRole(key, newRole){
+    var users = JSON.parse(localStorage.getItem('cs2csm_users')||'{}');
+    if (!users[key]) return;
+    users[key].role = newRole;
+    localStorage.setItem('cs2csm_users', JSON.stringify(users));
+    renderGpUsers();
+  }
+
+  function gpResetPass(key){
+    var newPass = prompt('Nova password para "'+key+'":');
+    if (!newPass || newPass.length < 6) { alert('Password inválida (mínimo 6 caracteres).'); return; }
+    var users = JSON.parse(localStorage.getItem('cs2csm_users')||'{}');
+    if (!users[key]) return;
+    users[key].password = btoa(newPass);
+    localStorage.setItem('cs2csm_users', JSON.stringify(users));
+    alert('✓ Password de "'+key+'" atualizada.');
+  }
+
+  function renderGpUsers(){
+    var list = document.getElementById('gp-users-list');
+    var badge = document.getElementById('gp-count-badge');
+    if (!list) return;
+    var users = JSON.parse(localStorage.getItem('cs2csm_users')||'{}');
+    var keys = Object.keys(users);
+    if (badge) badge.textContent = keys.length + ' utilizador'+(keys.length===1?'':'es');
+    if (!keys.length) {
+      list.innerHTML = '<p style="color:var(--text-muted);text-align:center;padding:24px;">Nenhum utilizador registado. Cria utilizadores no Gestor de Contas.</p>';
+      return;
+    }
+    var roleCols = { 'Manager':'#60a5fa', 'Admin':'#fca5a5', 'Árbitro':'#fde68a', 'Jogador':'#93c5fd', 'Espectador':'#6ee7b7' };
+    list.innerHTML = keys.map(function(k){
+      var u = users[k];
+      var roleColor = roleCols[u.role] || '#93c5fd';
+      var roleOpts = ['Manager','Admin','Árbitro','Jogador','Espectador'].map(function(r){
+        return '<option value="'+r+'"'+(u.role===r?' selected':'')+'>'+r+'</option>';
+      }).join('');
+      return '<div style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--bg2);border:1px solid var(--border);border-radius:10px;margin-bottom:8px;transition:border-color .2s;">' +
+        '<div style="width:36px;height:36px;border-radius:50%;background:rgba(37,99,235,.15);border:1.5px solid rgba(96,165,250,.3);display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;color:var(--blue-bright);flex-shrink:0;">'+u.username.slice(0,2).toUpperCase()+'</div>' +
+        '<div style="flex:1;min-width:0;">' +
+          '<div style="font-size:.88rem;font-weight:700;color:var(--text);">'+u.username+'</div>' +
+        '</div>' +
+        '<select data-k="'+k+'" onchange="gpChangeRole(this.dataset.k,this.value)" style="padding:5px 10px;background:var(--bg3);border:1px solid var(--border);border-radius:7px;color:'+roleColor+';font-size:.78rem;cursor:pointer;">'+roleOpts+'</select>' +
+        '<button data-k="'+k+'" onclick="gpDeleteUser(this.dataset.k)" title="Remover utilizador" style="padding:6px 10px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);border-radius:7px;color:#fca5a5;font-size:.75rem;cursor:pointer;display:flex;align-items:center;gap:5px;">' +
+          '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>' +
+          'Remover' +
+        '</button>' +
+      '</div>';
+    }).join('');
+  }
+
+  // render live games on DOMContentLoaded
+  document.addEventListener('DOMContentLoaded', function(){ renderLiveGames(); });
+  </script>
+</body>
+</html>
