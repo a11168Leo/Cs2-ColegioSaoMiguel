@@ -1,0 +1,186 @@
+.stat-grid,
+.map-grid,
+.command-list,
+.rules-grid,
+.server-grid,
+.team-grid,
+.match-grid,
+.admin-list {
+  display: grid;
+  gap: 16px;
+}
+
+.stat-grid {
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+.stat-card,
+.rule-card,
+.admin-card {
+  padding: 18px;
+  border-radius: 22px;
+}
+
+.stat-card span,
+.server-card p,
+.team-card p,
+.match-card p,
+.login-copy,
+.command-card p,
+.rule-card li,
+.admin-card small,
+.section-card > p {
+  color: var(--muted);
+}
+
+.stat-card strong,
+.match-score {
+  font-size: 1.8rem;
+}
+
+.map-grid {
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+.map-card {
+  min-height: 180px;
+  border-radius: 22px;
+  padding: 18px;
+  background-size: cover;
+  background-position: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: end;
+  gap: 8px;
+}
+
+.map-card span,
+.map-card small,
+.server-card small,
+.team-card small,
+.match-card small {
+  font-family: "IBM Plex Mono", monospace;
+}
+
+.command-card,
+.server-card,
+.team-card,
+.match-card {
+  padding: 18px;
+  border-radius: 22px;
+}
+
+.command-card,
+.team-card,
+.server-top,
+.match-head,
+.scoreboard-card {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.command-card code {
+  display: inline-block;
+  margin-top: 10px;
+  color: var(--warning);
+}
+
+.rules-grid {
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.rule-card ul {
+  padding-left: 18px;
+}
+
+.server-grid,
+.team-grid,
+.match-grid,
+.admin-list {
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+
+.badge-online {
+  background: rgba(109, 224, 173, 0.12);
+  color: var(--success);
+}
+
+.badge-maintenance {
+  background: rgba(255, 209, 102, 0.12);
+  color: var(--warning);
+}
+
+.team-card {
+  align-items: center;
+}
+
+.team-tag,
+.team-focus {
+  padding: 10px 12px;
+  border-radius: 16px;
+  background: rgba(84, 198, 235, 0.08);
+  font-family: "IBM Plex Mono", monospace;
+}
+
+.scoreboard-card {
+  align-items: center;
+  border-radius: 24px;
+  padding: 20px 24px;
+}
+
+.scoreboard-card > div {
+  display: grid;
+  gap: 6px;
+}
+
+.scoreboard-card strong {
+  font-size: 2rem;
+}
+
+.scoreboard-divider {
+  text-align: center;
+}
+
+.config-form,
+.login-form {
+  display: grid;
+  gap: 14px;
+}
+
+.config-form {
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.config-form label,
+.login-form label {
+  display: grid;
+  gap: 8px;
+  color: var(--muted);
+}
+
+.config-form input,
+.config-form select,
+.login-form input {
+  border-radius: 16px;
+  border: 1px solid var(--line);
+  background: rgba(4, 15, 24, 0.54);
+  color: var(--text);
+  padding: 14px 16px;
+}
+
+.form-success,
+.form-error {
+  border-radius: 16px;
+  padding: 12px 14px;
+}
+
+.form-success {
+  background: rgba(109, 224, 173, 0.1);
+  color: var(--success);
+}
+
+.form-error {
+  background: rgba(255, 123, 123, 0.1);
+  color: var(--danger);
+}

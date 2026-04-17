@@ -1,21 +1,40 @@
-# Painel CS2 Server
+# CS2 CSM Control Center
 
-Projeto inicial para um painel de controle que configura mapa, total de jogadores e IP de um servidor CS2.
+Projeto reorganizado para uma estrutura moderna com:
 
-## Como executar
+- `backend/`: API Node.js com Express
+- `frontend/`: app React com Vite e paginas separadas
 
-1. Abra um terminal em `backend`.
-2. Rode `npm install`.
-3. Rode `npm start`.
-4. Acesse `http://localhost:3000` no navegador.
+## Estrutura
 
-## O que foi criado
+- `frontend/src/pages`: paginas principais do painel
+- `frontend/src/components`: blocos reutilizaveis da interface
+- `frontend/src/context`: estado global da aplicacao
+- `backend/src/data`: dados demo e seeds da app
+- `backend/src/server.js`: API principal
 
-- `backend/server.js`: backend Express com API para salvar a configuração e enviar comandos.
-- `frontend/index.html`: painel com formulário para mapa, jogadores e IP.
-- `frontend/app.js`: lógica do frontend para chamar a API.
-- `frontend/styles.css`: estilos básicos do painel.
+## Como correr
 
-## Próximo passo
+1. Instalar dependencias:
+   `npm install`
+   `npm --prefix backend install`
+   `npm --prefix frontend install`
+2. Iniciar backend:
+   `npm run dev:backend`
+3. Iniciar frontend:
+   `npm run dev:frontend`
 
-Implementar a integração real com o servidor CS2 usando os valores de `map`, `totalPlayers` e `ipAddress`.
+Frontend por padrao em `http://localhost:5173` e backend em `http://localhost:3333`.
+
+## Login demo
+
+- `manager / manager123`
+- `admin / admin123`
+- `arbitro / arbitro123`
+
+## O que mudou
+
+- Migracao do HTML monolitico para React
+- Separacao por paginas e componentes
+- Criacao de uma API Node.js para auth demo, bootstrap, comandos e configuracao
+- UI mais fluida, limpa e facil de evoluir
