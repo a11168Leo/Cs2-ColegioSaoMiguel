@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CS2-CSM · Autenticação</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono&display=swap"
+    rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+
+<body class="auth-body">
+
+  <div class="auth-bg-deco">
+    <div class="auth-orb auth-orb-1"></div>
+    <div class="auth-orb auth-orb-2"></div>
+  </div>
+
+  <div class="auth-panel">
+    <div class="auth-brand">
+      <div class="auth-brand-icon">
+        <img src="./src/logos/logo_site.png" alt="CS2-CSM Logo" class="auth-brand-logo" />
+      </div>
+    </div>
+
+    <!-- Título simples sem tabs -->
+    <div class="auth-panel-title">Acesso Restrito</div>
+
+    <!-- FORM LOGIN ONLY -->
+    <div class="auth-form" id="form-login">
+      <div class="auth-form-group">
+        <label class="auth-label">Utilizador</label>
+        <div class="auth-input-wrap">
+          <svg class="auth-input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
+            <circle cx="12" cy="7" r="4" />
+          </svg>
+          <input class="auth-input" type="text" id="login-user" placeholder="o_teu_nick" autocomplete="username" />
+        </div>
+      </div>
+      <div class="auth-form-group">
+        <label class="auth-label">Password</label>
+        <div class="auth-input-wrap">
+          <svg class="auth-input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="11" width="18" height="11" rx="2" />
+            <path d="M7 11V7a5 5 0 0110 0v4" />
+          </svg>
+          <input class="auth-input" type="password" id="login-pass" placeholder="••••••••"
+            autocomplete="current-password" />
+          <button type="button" class="auth-eye-btn" onclick="togglePass('login-pass', this)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+              <circle cx="12" cy="12" r="3" />
+            </svg>
+          </button>
+        </div>
+      </div>
+      <div class="auth-extras">
+        <label class="auth-check-label">
+          <input type="checkbox" id="remember-me" class="auth-checkbox" />
+          <span class="auth-check-custom"></span>
+          Lembrar sessão
+        </label>
+      </div>
+      <div class="auth-error" id="login-error"></div>
+      <button class="auth-submit-btn" onclick="doLogin()">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4" />
+          <polyline points="10 17 15 12 10 7" />
+          <line x1="15" y1="12" x2="3" y2="12" />
+        </svg>
+        Entrar no Painel
+      </button>
+
+      <div class="auth-private-notice">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="11" width="18" height="11" rx="2" />
+          <path d="M7 11V7a5 5 0 0110 0v4" />
+        </svg>
+        Acesso apenas por convite. Contacta o administrador para obter credenciais.
+      </div>
+    </div>
+  </div>
+
+  <!-- Overlay de transição -->
+  <div class="page-transition" id="page-transition">
+    <div class="transition-logo">CS</div>
+    <div class="transition-text" id="transition-text">A carregar...</div>
+  </div>
+
+  <script src="auth.js"></script>
+</body>
+
+</html>
